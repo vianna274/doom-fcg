@@ -48,6 +48,9 @@
 #include "utils.h"
 #include "matrices.h"
 
+#include "support.h"
+#include "player.h"
+
 // Estrutura que representa um modelo geométrico carregado a partir de um
 // arquivo ".obj". Veja https://en.wikipedia.org/wiki/Wavefront_.obj_file .
 struct ObjModel
@@ -119,6 +122,20 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+
+
+/* MINE */
+void DrawEnvironment();
+void DrawFloor(int x, int y, int startX, int startY);
+
+// GLOBAL W U TO MOVE
+glm::vec4 w;
+glm::vec4 u;
+
+glm::vec4 player_pos = glm::vec4(0.0f, 0.0f,0.0f, 1.0f);
+Player mainPlayer(player_pos, 0.05f);
+
+/* END MINE */
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
@@ -267,7 +284,7 @@ int main(int argc, char* argv[])
     // Carregamos duas imagens para serem utilizadas como textura
     LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");      // TextureImage0
     LoadTextureImage("../../data/tc-earth_nightmap_citylights.gif"); // TextureImage1
-
+    LoadTextureImage("../../data/dungeon_floor.jpg"); // TextureImage2
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sphere.obj");
     ComputeNormals(&spheremodel);
@@ -303,7 +320,6 @@ int main(int argc, char* argv[])
     glm::mat4 the_projection;
     glm::mat4 the_model;
     glm::mat4 the_view;
-
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
@@ -336,14 +352,23 @@ int main(int argc, char* argv[])
 
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 165-175 do documento "Aula_08_Sistemas_de_Coordenadas.pdf".
-        glm::vec4 camera_position_c  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da câmera
-        glm::vec4 camera_lookat_l    = glm::vec4(0.0f,0.0f,0.0f,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
-        glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c; // Vetor "view", sentido para onde a câmera está virada
-        glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
+        // glm::vec4 camera_position_c  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da câmera
+        // glm::vec4 camera_lookat_l    = glm::vec4(0.0f,0.0f,0.0f,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
+        // glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c; // Vetor "view", sentido para onde a câmera está virada
+        // glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
-        // Computamos a matriz "View" utilizando os parâmetros da câmera para
-        // definir o sistema de coordenadas da câmera.  Veja slide 179 do
-        // documento "Aula_08_Sistemas_de_Coordenadas.pdf".
+        glm::vec4 camera_view_vector = glm::vec4(x,y,z, 0.0f);
+        glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f);
+
+        w = -camera_view_vector;
+        w = w/norm(w);
+        u = crossproduct(camera_up_vector, w);
+        u = u/norm(u);
+
+        mainPlayer.move(u,w);
+
+        glm::vec4 camera_position_c  = mainPlayer.getPosition(); // Ponto "c", centro da câmera
+
         glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
 
         // Agora computamos a matriz de Projeção.
@@ -377,7 +402,7 @@ int main(int argc, char* argv[])
             projection = Matrix_Orthographic(l, r, b, t, nearplane, farplane);
         }
 
-        glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
+        // glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
 
         // Enviamos as matrizes "view" e "projection" para a placa de vídeo
         // (GPU). Veja o arquivo "shader_vertex.glsl", onde estas são
@@ -390,26 +415,24 @@ int main(int argc, char* argv[])
         #define PLANE  2
 
         // Desenhamos o modelo da esfera
-        model = Matrix_Translate(-1.0f,0.0f,0.0f)
-              * Matrix_Rotate_Z(0.6f)
-              * Matrix_Rotate_X(0.2f)
-              * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
-        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, SPHERE);
-        DrawVirtualObject("sphere");
-
-        // Desenhamos o modelo do coelho
-        model = Matrix_Translate(1.0f,0.0f,0.0f)
-              * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f);
-        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, BUNNY);
-        DrawVirtualObject("bunny");
+        // model = Matrix_Translate(-1.0f,0.0f,0.0f)
+        //       * Matrix_Rotate_Z(0.6f)
+        //       * Matrix_Rotate_X(0.2f)
+        //       * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
+        // glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        // glUniform1i(object_id_uniform, SPHERE);
+        // DrawVirtualObject("sphere");
+        //
+        // // Desenhamos o modelo do coelho
+        // model = Matrix_Translate(1.0f,0.0f,0.0f)
+        //       * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f);
+        // glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        // glUniform1i(object_id_uniform, BUNNY);
+        // DrawVirtualObject("bunny");
 
         // Desenhamos o plano do chão
-        model = Matrix_Translate(0.0f,-1.1f,0.0f);
-        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, PLANE);
-        DrawVirtualObject("plane");
+        DrawEnvironment();
+
 
         // Pegamos um vértice com coordenadas de modelo (0.5, 0.5, 0.5, 1) e o
         // passamos por todos os sistemas de coordenadas armazenados nas
@@ -1195,6 +1218,46 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         fprintf(stdout,"Shaders recarregados!\n");
         fflush(stdout);
     }
+
+    /*
+    MOVING ACTIVE
+     */
+    if (key == GLFW_KEY_A && action == GLFW_PRESS)
+    {
+        mainPlayer.setA(true);
+    }
+    if (key == GLFW_KEY_D && action == GLFW_PRESS)
+    {
+        mainPlayer.setD(true);;
+    }
+    if (key == GLFW_KEY_W && action == GLFW_PRESS)
+    {
+        mainPlayer.setW(true);
+    }
+    if (key == GLFW_KEY_S && action == GLFW_PRESS)
+    {
+        mainPlayer.setS(true);
+    }
+
+    /*
+    MOVING RELEASE
+     */
+    if (key == GLFW_KEY_A && action == GLFW_RELEASE)
+    {
+        mainPlayer.setA(false);
+    }
+    if (key == GLFW_KEY_D && action == GLFW_RELEASE)
+    {
+        mainPlayer.setD(false);
+    }
+    if (key == GLFW_KEY_W && action == GLFW_RELEASE)
+    {
+        mainPlayer.setW(false);
+    }
+    if (key == GLFW_KEY_S && action == GLFW_RELEASE)
+    {
+        mainPlayer.setS(false);
+    }
 }
 
 // Definimos o callback para impressão de erros da GLFW no terminal
@@ -1465,6 +1528,28 @@ void PrintObjModelInfo(ObjModel* model)
       printf("  material.%s = %s\n", it->first.c_str(), it->second.c_str());
     }
     printf("\n");
+  }
+}
+
+void DrawEnvironment()
+{
+  DrawFloor(10,10, -15, -30);
+}
+
+void DrawFloor(int x, int y, int startX, int startY) {
+  glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
+  int xPosition = startX;
+  int yPosition = startY;
+  for (int i = 0; i < x; i++) {
+    for (int j = 0; j < y; j++) {
+      model = Matrix_Translate(xPosition,FLOOR_HEIGHT,yPosition);
+      glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+      glUniform1i(object_id_uniform, PLANE);
+      DrawVirtualObject("plane");
+      yPosition += HALF_FLOOR;
+    }
+    yPosition = 0;
+    xPosition += HALF_FLOOR;
   }
 }
 
