@@ -13,10 +13,10 @@ class Player {
     bool a_player_moving;
     bool s_player_moving;
     bool d_player_moving;
-    float moving_delta;
+    float speed;
 
   public:
-    Player(vec4 newPosition, float movingDelta);
+    Player(vec4 newPosition, float speed);
     void setA(bool opt);
     void setW(bool opt);
     void setS(bool opt);
@@ -25,7 +25,8 @@ class Player {
     void move(vec4 u,vec4 w);
     void jump(float height);
     void die();
-    void setMovingDelta(float newDelta);
+    void setSpeed(float newSpeed);
+    float getSpeed();
     vec4 getPosition();
 };
 

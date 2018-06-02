@@ -22,6 +22,7 @@ uniform mat4 projection;
 #define SPHERE 0
 #define BUNNY  1
 #define PLANE  2
+#define WALL   3
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -32,6 +33,7 @@ uniform vec4 bbox_max;
 uniform sampler2D TextureImage0;
 uniform sampler2D TextureImage1;
 uniform sampler2D TextureImage2;
+uniform sampler2D TextureImage3;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec3 color;
@@ -59,15 +61,19 @@ void main()
     vec4 n = normalize(normal);
 
     // Vetor que define o sentido da fonte de luz em relação ao ponto atual.
-    vec4 l = normalize(vec4(1.0,1.0,0.0,0.0));
-
+    vec4 l = normalize(vec4(1.0,1.0,0.5,0.0));
+    l = normalize(camera_position - position_world);
     // Vetor que define o sentido da câmera em relação ao ponto atual.
     vec4 v = normalize(camera_position - p);
+    vec4 r =  -l + 2 * n * (dot(n, l));
 
     // Coordenadas de textura U e V
     float U = 0.0;
     float V = 0.0;
-
+    vec3 Kd; // Refletância difusa
+    vec3 Ks; // Refletância especular
+    vec3 Ka; // Refletância ambiente
+    float q;
     if ( object_id == SPHERE )
     {
         // PREENCHA AQUI as coordenadas de textura da esfera, computadas com
@@ -96,45 +102,48 @@ void main()
         U = (omega + M_PI)/(2*M_PI);
         V = (delta + (M_PI_2))/(M_PI);
     }
-    else if ( object_id == BUNNY )
-    {
-        // PREENCHA AQUI as coordenadas de textura do coelho, computadas com
-        // projeção planar XY em COORDENADAS DO MODELO. Utilize como referência
-        // o slide 106 do documento "Aula_20_e_21_Mapeamento_de_Texturas.pdf",
-        // e também use as variáveis min*/max* definidas abaixo para normalizar
-        // as coordenadas de textura U e V dentro do intervalo [0,1]. Para
-        // tanto, veja por exemplo o mapeamento da variável 'p_v' utilizando
-        // 'h' no slide 151 do documento "Aula_20_e_21_Mapeamento_de_Texturas.pdf".
-
-        float minx = bbox_min.x;
-        float maxx = bbox_max.x;
-
-        float miny = bbox_min.y;
-        float maxy = bbox_max.y;
-
-        float minz = bbox_min.z;
-        float maxz = bbox_max.z;
-        float raiox = maxx - minx;
-        float raioy = maxy - minz;
-        float raioz = maxz - minz;
-        //U = raiox * sin(position_model.x)
-        U = (maxx - position_model.x)/(maxx - minx);
-        V = (maxz - position_model.y)/(maxy - miny);
-    }
     else if ( object_id == PLANE )
     {
         // Coordenadas de textura do plano, obtidas do arquivo OBJ.
         U = texcoords.x;
         V = texcoords.y;
+        Kd = vec3(0.8,0.2,0.2);
+        Ks = vec3(0.2,0.2,0.2);
+        Ka = vec3(0.0,0.0,0.0);
+        q = 5.0;
     }
-
+    else if ( object_id == WALL )
+    {
+        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
+        U = texcoords.x;
+        V = texcoords.y;
+        Kd = vec3(0.8,0.2,0.2);
+        Ks = vec3(0.2,0.2,0.2);
+        Ka = vec3(0.0,0.0,0.0);
+        q = 5.0;
+    }
+    vec3 I = vec3(0.2,0.2,0.2);
     // Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
+    vec3 Ia = vec3(0.2,0.2,0.2); // PREENCHA AQUI o espectro da luz ambiente
+
     vec3 Kd0 = texture(TextureImage2, vec2(U,V)).rgb;
 
-    // Equação de Iluminação
-    float lambert = max(0,dot(n,l));
+    if (object_id == PLANE) {
+      Kd0 = texture(TextureImage1, vec2(U,V)).rgb;
+    } else if (object_id == WALL) {
+      Kd0 = texture(TextureImage2, vec2(U,V)).rgb;
+    }
+    vec3 lambert_diffuse_term = Kd0 * I * max(0, dot(n, l));
 
-    color = Kd0 * (lambert + 0.01);
+    // Termo ambiente
+    vec3 ambient_term = Ka * Ia;
+
+    // Termo especular utilizando o modelo de iluminação de Phong
+    vec3 phong_specular_term  = Ks * I * pow(max(0, dot(r, v)), q);
+
+    // Cor final do fragmento calculada com uma combinação dos termos difuso,
+    // especular, e ambiente. Veja slide 134 do documento "Aula_17_e_18_Modelos_de_Iluminacao.pdf".
+    color = lambert_diffuse_term + ambient_term + phong_specular_term;
 
     // Cor final com correção gamma, considerando monitor sRGB.
     // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas

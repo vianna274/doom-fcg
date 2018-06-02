@@ -1,13 +1,13 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "player.h"
+#include "player.hpp"
 
 using namespace glm;
 
-Player::Player (vec4 newPosition, float movingDelta) {
+Player::Player (vec4 newPosition, float newSpeed) {
   position = newPosition;
-  moving_delta = movingDelta;
+  speed = newSpeed;
 }
 
 void Player::setPosition (vec4 newPosition) {
@@ -17,20 +17,20 @@ void Player::setPosition (vec4 newPosition) {
 void Player::move(glm::vec4 u,glm::vec4 w) {
   // You need to add or sub W or U vector to player_pos
   if (w_player_moving) {
-    position.x = position.x - moving_delta * w.x;
-    position.z = position.z - moving_delta * w.z;
+    position.x = position.x - speed * w.x;
+    position.z = position.z - speed * w.z;
   }
   if (s_player_moving) {
-    position.x = position.x + moving_delta * w.x;
-    position.z = position.z + moving_delta * w.z;
+    position.x = position.x + speed * w.x;
+    position.z = position.z + speed * w.z;
   }
   if (a_player_moving) {
-    position.x = position.x - moving_delta * u.x;
-    position.z = position.z - moving_delta * u.z;
+    position.x = position.x - speed * u.x;
+    position.z = position.z - speed * u.z;
   }
   if (d_player_moving) {
-    position.x = position.x + moving_delta * u.x;
-    position.z = position.z + moving_delta * u.z;
+    position.x = position.x + speed * u.x;
+    position.z = position.z + speed * u.z;
   }
 }
 
@@ -50,10 +50,14 @@ void Player::setW(bool opt) {
   w_player_moving = opt;
 }
 
-void Player::setMovingDelta(float newDelta) {
-  moving_delta = newDelta;
+void Player::setSpeed(float newSpeed) {
+  speed = newSpeed;
 }
 
 vec4 Player::getPosition() {
   return position;
+}
+
+float Player::getSpeed() {
+  return speed;
 }

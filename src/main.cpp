@@ -49,7 +49,7 @@
 #include "matrices.h"
 
 #include "support.h"
-#include "player.h"
+#include "player.hpp"
 
 // Estrutura que representa um modelo geométrico carregado a partir de um
 // arquivo ".obj". Veja https://en.wikipedia.org/wiki/Wavefront_.obj_file .
@@ -127,7 +127,8 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 /* MINE */
 void DrawEnvironment();
 void DrawFloor(int x, int y, int startX, int startY);
-
+void DrawHorizontalWall(int quant, int startX, int startY);
+void DrawVerticalWall(int quant, int startX, int startY);
 // GLOBAL W U TO MOVE
 glm::vec4 w;
 glm::vec4 u;
@@ -282,9 +283,10 @@ int main(int argc, char* argv[])
     LoadShadersFromFiles();
 
     // Carregamos duas imagens para serem utilizadas como textura
-    LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");      // TextureImage0
+    //LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");      // TextureImage0
     LoadTextureImage("../../data/tc-earth_nightmap_citylights.gif"); // TextureImage1
     LoadTextureImage("../../data/dungeon_floor.jpg"); // TextureImage2
+    LoadTextureImage("../../data/dungeon_wall.jpg"); // TextureImage3
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sphere.obj");
     ComputeNormals(&spheremodel);
@@ -378,7 +380,7 @@ int main(int argc, char* argv[])
         // estão no sentido negativo! Veja slides 191-194 do documento
         // "Aula_09_Projecoes.pdf".
         float nearplane = -0.1f;  // Posição do "near plane"
-        float farplane  = -10.0f; // Posição do "far plane"
+        float farplane  = -50.0f; // Posição do "far plane"
 
         if (g_UsePerspectiveProjection)
         {
@@ -413,7 +415,7 @@ int main(int argc, char* argv[])
         #define SPHERE 0
         #define BUNNY  1
         #define PLANE  2
-
+        #define WALL   3
         // Desenhamos o modelo da esfera
         // model = Matrix_Translate(-1.0f,0.0f,0.0f)
         //       * Matrix_Rotate_Z(0.6f)
@@ -1239,6 +1241,11 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         mainPlayer.setS(true);
     }
 
+    if (key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS)
+    {
+        mainPlayer.setSpeed(mainPlayer.getSpeed()*2);
+    }
+
     /*
     MOVING RELEASE
      */
@@ -1257,6 +1264,11 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_S && action == GLFW_RELEASE)
     {
         mainPlayer.setS(false);
+    }
+
+    if (key == GLFW_KEY_LEFT_SHIFT && action == GLFW_RELEASE)
+    {
+        mainPlayer.setSpeed(mainPlayer.getSpeed()/2);
     }
 }
 
@@ -1533,7 +1545,13 @@ void PrintObjModelInfo(ObjModel* model)
 
 void DrawEnvironment()
 {
-  DrawFloor(10,10, -15, -30);
+  DrawFloor(10,10, 0, 0);
+  DrawHorizontalWall(10, 0, -1);
+  DrawVerticalWall(10,-1,0);
+  DrawHorizontalWall(5, -1, 4);
+  DrawHorizontalWall(3, 14, 4);
+  DrawVerticalWall(10, 19, 0);
+  DrawHorizontalWall(10, 0, 19);
 }
 
 void DrawFloor(int x, int y, int startX, int startY) {
@@ -1553,5 +1571,73 @@ void DrawFloor(int x, int y, int startX, int startY) {
   }
 }
 
+/*
+ * Desenha a parede da direita para esquerda
+ * @params:
+ * quant -> quantas paredes vão ser desenhadas
+ * startX -> A partir de qual X vai desenhar (horizontal do personagem), quanto maior mais p esquerda
+ * startY -> A partir de qual Y vaiu desenhar (vertical do personagem), quanto maior mais p cima
+ * returns:
+ * true  -> caso seja
+ * false -> caso não seja
+*/
+void DrawHorizontalWall(int quant, int startX, int startY) {
+  glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
+  //model = Matrix_Rotate_X(0.5f);
+
+  int xPosition = startX;
+  int yPosition = startY;
+
+  for (int j = 0; j < quant; j++) {
+    model = Matrix_Translate(xPosition,WALL_HEIGHT,yPosition) *
+            Matrix_Rotate_X(-1.57079632f) *
+            Matrix_Rotate_Z(3.141592f);
+    glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+    glUniform1i(object_id_uniform, WALL);
+    DrawVirtualObject("plane");
+
+    model = Matrix_Translate(xPosition,WALL_HEIGHT,yPosition) *
+            Matrix_Rotate_X(-1.57079632f);
+    glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+    glUniform1i(object_id_uniform, WALL);
+    DrawVirtualObject("plane");
+    xPosition += HALF_FLOOR;
+  }
+}
+
+/*
+ * Desenha a parede de baixo para cima
+ * @params:
+ * quant -> quantas paredes vão ser desenhadas
+ * startX -> A partir de qual X vai desenhar (horizontal do personagem), quanto maior mais p esquerda
+ * startY -> A partir de qual Y vaiu desenhar (vertical do personagem), quanto maior mais p cima
+ * returns:
+ * true  -> caso seja
+ * false -> caso não seja
+*/
+void DrawVerticalWall(int quant, int startX, int startY) {
+  glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
+  //model = Matrix_Rotate_X(0.5f);
+
+  int xPosition = startX;
+  int yPosition = startY;
+
+  for (int j = 0; j < quant; j++) {
+    model = Matrix_Translate(xPosition,WALL_HEIGHT,yPosition) *
+            Matrix_Rotate_X(-1.57079632f) *
+            Matrix_Rotate_Z(1.57079632f);
+    glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+    glUniform1i(object_id_uniform, WALL);
+    DrawVirtualObject("plane");
+
+    model = Matrix_Translate(xPosition,WALL_HEIGHT,yPosition) *
+            Matrix_Rotate_X(-1.57079632f) *
+            Matrix_Rotate_Z(3.141592f + 1.57079632f);
+    glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+    glUniform1i(object_id_uniform, WALL);
+    DrawVirtualObject("plane");
+    yPosition += HALF_FLOOR;
+  }
+}
 // set makeprg=cd\ ..\ &&\ make\ run\ >/dev/null
 // vim: set spell spelllang=pt_br :
