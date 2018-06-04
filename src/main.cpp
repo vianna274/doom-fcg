@@ -50,6 +50,7 @@
 
 #include "support.h"
 #include "player.hpp"
+#include "wall.hpp"
 
 // Estrutura que representa um modelo geométrico carregado a partir de um
 // arquivo ".obj". Veja https://en.wikipedia.org/wiki/Wavefront_.obj_file .
@@ -110,7 +111,7 @@ void TextRendering_PrintMatrixVectorProductDivW(GLFWwindow* window, glm::mat4 M,
 // Funções abaixo renderizam como texto na janela OpenGL algumas matrizes e
 // outras informações do programa. Definidas após main().
 void TextRendering_ShowModelViewProjection(GLFWwindow* window, glm::mat4 projection, glm::mat4 view, glm::mat4 model, glm::vec4 p_model);
-void TextRendering_ShowEulerAngles(GLFWwindow* window);
+void TextRendering_ShowEulerAngles(GLFWwindow* window,int i);
 void TextRendering_ShowProjection(GLFWwindow* window);
 void TextRendering_ShowFramesPerSecond(GLFWwindow* window);
 
@@ -127,15 +128,17 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 /* MINE */
 void DrawEnvironment();
 void DrawFloor(int x, int y, int startX, int startY);
-void DrawHorizontalWall(int quant, int startX, int startY);
-void DrawVerticalWall(int quant, int startX, int startY);
+void DrawCeil(int x, int y, int startX, int startY);
+std::vector<Wall> DrawHorizontalWall(int quant, int startX, int startY);
+std::vector<Wall> DrawVerticalWall(int quant, int startX, int startY);
+bool collided(vec3 position);
 // GLOBAL W U TO MOVE
 glm::vec4 w;
 glm::vec4 u;
 
-glm::vec4 player_pos = glm::vec4(0.0f, 0.0f,0.0f, 1.0f);
+glm::vec4 player_pos = glm::vec4(1.0f, 0.0f,1.0f, 1.0f);
 Player mainPlayer(player_pos, 0.05f);
-
+std::vector<Wall> collisionWalls;
 /* END MINE */
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
@@ -284,9 +287,9 @@ int main(int argc, char* argv[])
 
     // Carregamos duas imagens para serem utilizadas como textura
     //LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");      // TextureImage0
-    LoadTextureImage("../../data/tc-earth_nightmap_citylights.gif"); // TextureImage1
-    LoadTextureImage("../../data/dungeon_floor.jpg"); // TextureImage2
-    LoadTextureImage("../../data/dungeon_wall.jpg"); // TextureImage3
+    LoadTextureImage("../../data/dungeon_floor.jpg"); // TextureImage0
+    LoadTextureImage("../../data/dungeon_wall.jpg"); // TextureImage1
+    LoadTextureImage("../../data/pistol_D.tga"); // TextureImage2
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sphere.obj");
     ComputeNormals(&spheremodel);
@@ -299,6 +302,10 @@ int main(int argc, char* argv[])
     ObjModel planemodel("../../data/plane.obj");
     ComputeNormals(&planemodel);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
+
+    ObjModel pistolmodel("../../data/Pistol.obj");
+    ComputeNormals(&pistolmodel);
+    BuildTrianglesAndAddToVirtualScene(&pistolmodel);
 
     if ( argc > 1 )
     {
@@ -368,10 +375,24 @@ int main(int argc, char* argv[])
         u = u/norm(u);
 
         mainPlayer.move(u,w);
+        if(collided(mainPlayer.getPosition())) {
+          mainPlayer.unmove();
+        }
 
         glm::vec4 camera_position_c  = mainPlayer.getPosition(); // Ponto "c", centro da câmera
 
         glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
+
+        glm::vec4 pistolPos = camera_view_vector + 0.2f*u + 3.2f*w;
+        glm::mat4 model = Matrix_Translate(camera_position_c[0] + pistolPos[0],
+                                  camera_position_c[1] + pistolPos[1] - 0.3,
+                                  camera_position_c[2] + pistolPos[2])
+                 //* Matrix_Rotate(-3.14/6, camera_up_vector)
+                 //* Matrix_Rotate(g_CameraPhi, u)
+                 * Matrix_Rotate(g_CameraTheta + (3.14*2), camera_up_vector);
+        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(object_id_uniform, PISTOL);
+        DrawVirtualObject("Pistol");
 
         // Agora computamos a matriz de Projeção.
         glm::mat4 projection;
@@ -412,10 +433,6 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
         glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
 
-        #define SPHERE 0
-        #define BUNNY  1
-        #define PLANE  2
-        #define WALL   3
         // Desenhamos o modelo da esfera
         // model = Matrix_Translate(-1.0f,0.0f,0.0f)
         //       * Matrix_Rotate_Z(0.6f)
@@ -442,11 +459,13 @@ int main(int argc, char* argv[])
         // as matrizes e pontos resultantes dessas transformações.
         //glm::vec4 p_model(0.5f, 0.5f, 0.5f, 1.0f);
         //TextRendering_ShowModelViewProjection(window, projection, view, model, p_model);
-
+        if(collided(mainPlayer.getPosition())) {
+          TextRendering_ShowEulerAngles(window, 1);
+        }  else {
+          TextRendering_ShowEulerAngles(window,2);
+        }
         // Imprimimos na tela os ângulos de Euler que controlam a rotação do
         // terceiro cubo.
-        TextRendering_ShowEulerAngles(window);
-
         // Imprimimos na informação sobre a matriz de projeção sendo utilizada.
         TextRendering_ShowProjection(window);
 
@@ -1083,7 +1102,7 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 
         // Atualizamos parâmetros da câmera com os deslocamentos
         g_CameraTheta -= 0.01f*dx;
-        g_CameraPhi   += 0.01f*dy;
+        g_CameraPhi   += 0.0f;
 
         // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
         float phimax = 3.141592f/2;
@@ -1310,7 +1329,7 @@ void TextRendering_ShowModelViewProjection(
 
 // Escrevemos na tela os ângulos de Euler definidos nas variáveis globais
 // g_AngleX, g_AngleY, e g_AngleZ.
-void TextRendering_ShowEulerAngles(GLFWwindow* window)
+void TextRendering_ShowEulerAngles(GLFWwindow* window, int i)
 {
     if ( !g_ShowInfoText )
         return;
@@ -1318,7 +1337,10 @@ void TextRendering_ShowEulerAngles(GLFWwindow* window)
     float pad = TextRendering_LineHeight(window);
 
     char buffer[80];
-    snprintf(buffer, 80, "Euler Angles rotation matrix = Z(%.2f)*Y(%.2f)*X(%.2f)\n", g_AngleZ, g_AngleY, g_AngleX);
+    if (i == 1)
+      snprintf(buffer, 80, "BUGOU");
+    if (i == 2)
+      snprintf(buffer, 80, "NAO");
 
     TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+2*pad/10, 1.0f);
 }
@@ -1545,13 +1567,34 @@ void PrintObjModelInfo(ObjModel* model)
 
 void DrawEnvironment()
 {
+  std::vector<Wall> list, tempList;
+
   DrawFloor(10,10, 0, 0);
-  DrawHorizontalWall(10, 0, -1);
-  DrawVerticalWall(10,-1,0);
-  DrawHorizontalWall(5, -1, 4);
-  DrawHorizontalWall(3, 14, 4);
-  DrawVerticalWall(10, 19, 0);
-  DrawHorizontalWall(10, 0, 19);
+  DrawCeil(1,1, 0, 0);
+  tempList = DrawHorizontalWall(10, 0, -1);
+  list.insert(list.end(), tempList.begin(), tempList.end());
+  tempList = DrawVerticalWall(10,-1,0);
+  list.insert(list.end(), tempList.begin(), tempList.end());
+  tempList = DrawHorizontalWall(5, -1, 4);
+  list.insert(list.end(), tempList.begin(), tempList.end());
+  tempList = DrawVerticalWall(1, 8, 5);
+  list.insert(list.end(), tempList.begin(), tempList.end());
+  tempList = DrawHorizontalWall(5, -1, 6);
+  list.insert(list.end(), tempList.begin(), tempList.end());
+  tempList = DrawHorizontalWall(3, 14, 4);
+  list.insert(list.end(), tempList.begin(), tempList.end());
+  tempList = DrawHorizontalWall(3, 14, 6);
+  list.insert(list.end(), tempList.begin(), tempList.end());
+  tempList = DrawVerticalWall(1, 13, 5);
+  list.insert(list.end(), tempList.begin(), tempList.end());
+  tempList = DrawVerticalWall(10, 19, 0);
+  list.insert(list.end(), tempList.begin(), tempList.end());
+  tempList = DrawHorizontalWall(10, 0, 19);
+  list.insert(list.end(), tempList.begin(), tempList.end());
+
+  collisionWalls = list;
+
+  std::vector<Wall>::iterator it;
 }
 
 void DrawFloor(int x, int y, int startX, int startY) {
@@ -1571,6 +1614,35 @@ void DrawFloor(int x, int y, int startX, int startY) {
   }
 }
 
+void DrawCeil(int x, int y, int startX, int startY) {
+  glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
+  int xPosition = startX;
+  int yPosition = startY;
+
+  for (int i = 0; i < x; i++) {
+    for (int j = 0; j < y; j++) {
+      model = Matrix_Translate(xPosition,FLOOR_HEIGHT+2,yPosition) *
+              Matrix_Rotate_X(-3.141592f);
+      glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+      glUniform1i(object_id_uniform, PLANE);
+      DrawVirtualObject("plane");
+      yPosition += HALF_FLOOR;
+    }
+    yPosition = 0;
+    xPosition += HALF_FLOOR;
+  }
+}
+
+bool collided(vec3 position) {
+  std::vector<Wall>::iterator it;
+  for (it = collisionWalls.begin(); it != collisionWalls.end(); it++) {
+    if(it->collision(position)) {
+      printf("Z");
+      return true;
+    }
+  }
+  return false;
+}
 /*
  * Desenha a parede da direita para esquerda
  * @params:
@@ -1581,12 +1653,12 @@ void DrawFloor(int x, int y, int startX, int startY) {
  * true  -> caso seja
  * false -> caso não seja
 */
-void DrawHorizontalWall(int quant, int startX, int startY) {
-  glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
-  //model = Matrix_Rotate_X(0.5f);
+std::vector<Wall> DrawHorizontalWall(int quant, int startX, int startY) {
+  glm::mat4 model = Matrix_Identity();
 
-  int xPosition = startX;
-  int yPosition = startY;
+  float xPosition = startX;
+  float yPosition = startY;
+  std::vector<Wall> list;
 
   for (int j = 0; j < quant; j++) {
     model = Matrix_Translate(xPosition,WALL_HEIGHT,yPosition) *
@@ -1601,8 +1673,12 @@ void DrawHorizontalWall(int quant, int startX, int startY) {
     glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
     glUniform1i(object_id_uniform, WALL);
     DrawVirtualObject("plane");
+
+    Wall *mywall = new Wall(vec3(xPosition, WALL_HEIGHT, yPosition), 2.0f, 1.0f, model);
+    list.insert(list.begin(), *mywall);
     xPosition += HALF_FLOOR;
   }
+  return list;
 }
 
 /*
@@ -1615,12 +1691,14 @@ void DrawHorizontalWall(int quant, int startX, int startY) {
  * true  -> caso seja
  * false -> caso não seja
 */
-void DrawVerticalWall(int quant, int startX, int startY) {
+std::vector<Wall> DrawVerticalWall(int quant, int startX, int startY) {
   glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
   //model = Matrix_Rotate_X(0.5f);
 
   int xPosition = startX;
   int yPosition = startY;
+
+  std::vector<Wall> list;
 
   for (int j = 0; j < quant; j++) {
     model = Matrix_Translate(xPosition,WALL_HEIGHT,yPosition) *
@@ -1636,8 +1714,13 @@ void DrawVerticalWall(int quant, int startX, int startY) {
     glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
     glUniform1i(object_id_uniform, WALL);
     DrawVirtualObject("plane");
+
+    Wall *mywall = new Wall(vec3(xPosition, WALL_HEIGHT, yPosition), 1.0f, 2.0f, model);
+    list.insert(list.begin(), *mywall);
     yPosition += HALF_FLOOR;
+
   }
+  return list;
 }
 // set makeprg=cd\ ..\ &&\ make\ run\ >/dev/null
 // vim: set spell spelllang=pt_br :

@@ -23,6 +23,7 @@ uniform mat4 projection;
 #define BUNNY  1
 #define PLANE  2
 #define WALL   3
+#define PISTOL 4
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -34,6 +35,7 @@ uniform sampler2D TextureImage0;
 uniform sampler2D TextureImage1;
 uniform sampler2D TextureImage2;
 uniform sampler2D TextureImage3;
+uniform sampler2D TextureImage4;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec3 color;
@@ -110,7 +112,7 @@ void main()
         Kd = vec3(0.8,0.2,0.2);
         Ks = vec3(0.2,0.2,0.2);
         Ka = vec3(0.0,0.0,0.0);
-        q = 5.0;
+        q = 1.0;
     }
     else if ( object_id == WALL )
     {
@@ -120,26 +122,40 @@ void main()
         Kd = vec3(0.8,0.2,0.2);
         Ks = vec3(0.2,0.2,0.2);
         Ka = vec3(0.0,0.0,0.0);
-        q = 5.0;
+        q = 50.0;
+    }
+    else if ( object_id == PISTOL )
+    {
+        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
+        U = texcoords.x;
+        V = texcoords.y;
+        Kd = vec3(0.8,0.2,0.2);
+        Ks = vec3(0.2,0.2,0.2);
+        Ka = vec3(0.0,0.0,0.0);
+        q = 50.0;
     }
     vec3 I = vec3(0.2,0.2,0.2);
     // Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
-    vec3 Ia = vec3(0.2,0.2,0.2); // PREENCHA AQUI o espectro da luz ambiente
+    vec3 Ia = vec3(0.05,0.05,0.05); // PREENCHA AQUI o espectro da luz ambiente
 
     vec3 Kd0 = texture(TextureImage2, vec2(U,V)).rgb;
+    vec3 ambient_term = Ka * Ia;
+    vec3 phong_specular_term  = Ks * I * pow(max(0, dot(r, v)), q);
 
     if (object_id == PLANE) {
-      Kd0 = texture(TextureImage1, vec2(U,V)).rgb;
+      Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
     } else if (object_id == WALL) {
-      Kd0 = texture(TextureImage2, vec2(U,V)).rgb;
+      Kd0 = texture(TextureImage1, vec2(U,V)).rgb;
+      ambient_term = vec3(0,0,0);
+      phong_specular_term = vec3(0,0,0);
+    } else if (object_id == PISTOL) {
+     Kd0 = texture(TextureImage2, vec2(U,V)).rgb;
     }
     vec3 lambert_diffuse_term = Kd0 * I * max(0, dot(n, l));
 
     // Termo ambiente
-    vec3 ambient_term = Ka * Ia;
 
     // Termo especular utilizando o modelo de iluminação de Phong
-    vec3 phong_specular_term  = Ks * I * pow(max(0, dot(r, v)), q);
 
     // Cor final do fragmento calculada com uma combinação dos termos difuso,
     // especular, e ambiente. Veja slide 134 do documento "Aula_17_e_18_Modelos_de_Iluminacao.pdf".

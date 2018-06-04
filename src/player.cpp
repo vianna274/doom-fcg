@@ -16,6 +16,7 @@ void Player::setPosition (vec4 newPosition) {
 
 void Player::move(glm::vec4 u,glm::vec4 w) {
   // You need to add or sub W or U vector to player_pos
+  lastPosition = position;
   if (w_player_moving) {
     position.x = position.x - speed * w.x;
     position.z = position.z - speed * w.z;
@@ -32,6 +33,10 @@ void Player::move(glm::vec4 u,glm::vec4 w) {
     position.x = position.x + speed * u.x;
     position.z = position.z + speed * u.z;
   }
+}
+
+void Player::unmove() {
+  position = lastPosition;
 }
 
 void Player::setA(bool opt) {

@@ -8,7 +8,7 @@
 using namespace glm;
 
 class Player {
-    vec4 position;
+    vec4 position, lastPosition;
     bool w_player_moving;
     bool a_player_moving;
     bool s_player_moving;
@@ -23,6 +23,7 @@ class Player {
     void setD(bool opt);
     void setPosition(vec4 newPosition);
     void move(vec4 u,vec4 w);
+    void unmove();
     void jump(float height);
     void die();
     void setSpeed(float newSpeed);
