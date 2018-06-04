@@ -51,6 +51,7 @@
 #include "support.h"
 #include "player.hpp"
 #include "wall.hpp"
+#include "enemy.hpp"
 #include <SFML/Audio.hpp>
 #include <unistd.h>
 
@@ -113,7 +114,7 @@ void TextRendering_PrintMatrixVectorProductDivW(GLFWwindow* window, glm::mat4 M,
 // Funções abaixo renderizam como texto na janela OpenGL algumas matrizes e
 // outras informações do programa. Definidas após main().
 void TextRendering_ShowModelViewProjection(GLFWwindow* window, glm::mat4 projection, glm::mat4 view, glm::mat4 model, glm::vec4 p_model);
-void TextRendering_ShowEulerAngles(GLFWwindow* window,int i);
+void TextRendering_ShowEulerAngles(GLFWwindow* window, const char * txt);
 void TextRendering_ShowProjection(GLFWwindow* window);
 void TextRendering_ShowFramesPerSecond(GLFWwindow* window);
 
@@ -131,6 +132,7 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 void DrawEnvironment();
 void DrawFloor(int x, int y, int startX, int startY);
 void DrawCeil(int x, int y, int startX, int startY);
+void DrawEnemies();
 std::vector<Wall> DrawHorizontalWall(int quant, int startX, int startY);
 std::vector<Wall> DrawVerticalWall(int quant, int startX, int startY);
 bool collided(vec3 position);
@@ -140,6 +142,7 @@ glm::vec4 u;
 
 glm::vec4 player_pos = glm::vec4(1.0f, 0.0f,1.0f, 1.0f);
 Player mainPlayer(player_pos, 0.05f, "Pistol", PISTOL);
+Enemy mainEnemy(glm::vec4(7.0f, 0.0f, 1.0f, 1.0f), 0.03f, "Pistol", PISTOL, 4.0f, 2.0f, 10.0f);
 char* curGunName;
 int curGunId;
 std::vector<Wall> collisionWalls;
@@ -391,6 +394,10 @@ int main(int argc, char* argv[])
         if(collided(mainPlayer.getPosition())) {
           mainPlayer.unmove();
         }
+        mainEnemy.move(u,w,mainPlayer.getPosition());
+        if(collided(mainEnemy.getPosition())) {
+          mainEnemy.unmove();
+        }
 
         glm::vec4 camera_position_c  = mainPlayer.getPosition(); // Ponto "c", centro da câmera
 
@@ -413,6 +420,7 @@ int main(int argc, char* argv[])
           possiblyShoot = true;
         if (g_LeftMouseButtonPressed && possiblyShoot) {
           possiblyShoot = false;
+          mainEnemy.hit(1.0f);
           shootTime = glfwGetTime();
           glm::vec4 shotPos = camera_view_vector + 0.1f*u + 2.6f*w;
           model = Matrix_Translate(camera_position_c[0] + shotPos[0],
@@ -428,6 +436,7 @@ int main(int argc, char* argv[])
           DrawVirtualObject("plane");
           sound.play();
         }
+
 
         // Agora computamos a matriz de Projeção.
         glm::mat4 projection;
@@ -487,18 +496,17 @@ int main(int argc, char* argv[])
         // Desenhamos o plano do chão
         DrawEnvironment();
 
-
+        char buffer[80];
+        float pad = TextRendering_LineHeight(window);
+        snprintf(buffer, 80,"MONSTER HEALTH: %f", mainEnemy.getHealth());
+        TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+2*pad/10, 3.0f);
         // Pegamos um vértice com coordenadas de modelo (0.5, 0.5, 0.5, 1) e o
         // passamos por todos os sistemas de coordenadas armazenados nas
         // matrizes the_model, the_view, e the_projection; e escrevemos na tela
         // as matrizes e pontos resultantes dessas transformações.
         //glm::vec4 p_model(0.5f, 0.5f, 0.5f, 1.0f);
         //TextRendering_ShowModelViewProjection(window, projection, view, model, p_model);
-        if(collided(mainPlayer.getPosition())) {
-          TextRendering_ShowEulerAngles(window, 1);
-        }  else {
-          TextRendering_ShowEulerAngles(window,2);
-        }
+
         // Imprimimos na tela os ângulos de Euler que controlam a rotação do
         // terceiro cubo.
         // Imprimimos na informação sobre a matriz de projeção sendo utilizada.
@@ -1325,7 +1333,7 @@ void TextRendering_ShowModelViewProjection(
 
 // Escrevemos na tela os ângulos de Euler definidos nas variáveis globais
 // g_AngleX, g_AngleY, e g_AngleZ.
-void TextRendering_ShowEulerAngles(GLFWwindow* window, int i)
+void TextRendering_ShowEulerAngles(GLFWwindow* window, const char * txt)
 {
     if ( !g_ShowInfoText )
         return;
@@ -1333,10 +1341,7 @@ void TextRendering_ShowEulerAngles(GLFWwindow* window, int i)
     float pad = TextRendering_LineHeight(window);
 
     char buffer[80];
-    if (i == 1)
-      snprintf(buffer, 80, "BUGOU");
-    if (i == 2)
-      snprintf(buffer, 80, "NAO");
+    snprintf(buffer, 80, "HEALTH %f", mainEnemy.getHealth());
 
     TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+2*pad/10, 1.0f);
 }
@@ -1590,7 +1595,7 @@ void DrawEnvironment()
 
   collisionWalls = list;
 
-  std::vector<Wall>::iterator it;
+  DrawEnemies();
 }
 
 void DrawFloor(int x, int y, int startX, int startY) {
@@ -1633,12 +1638,12 @@ bool collided(vec3 position) {
   std::vector<Wall>::iterator it;
   for (it = collisionWalls.begin(); it != collisionWalls.end(); it++) {
     if(it->collision(position)) {
-      printf("Z");
       return true;
     }
   }
   return false;
 }
+
 /*
  * Desenha a parede da direita para esquerda
  * @params:
@@ -1717,6 +1722,14 @@ std::vector<Wall> DrawVerticalWall(int quant, int startX, int startY) {
 
   }
   return list;
+}
+
+void DrawEnemies() {
+  glm::mat4 model = Matrix_Identity();
+  model = Matrix_Translate(mainEnemy.getPosition().x,mainEnemy.getPosition().y,mainEnemy.getPosition().z);
+  glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+  glUniform1i(object_id_uniform, PISTOL);
+  DrawVirtualObject("Pistol");
 }
 // set makeprg=cd\ ..\ &&\ make\ run\ >/dev/null
 // vim: set spell spelllang=pt_br :

@@ -12,4 +12,8 @@
 #define PISTOL 4
 #define SHOT   5
 
+#define A_KEY 0
+#define D_KEY 1
+#define S_KEY 2
+#define W_KEY 3
 #endif
