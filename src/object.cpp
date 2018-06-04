@@ -54,4 +54,11 @@ namespace ObjectStatic {
 
     return false;
   }
+
+  bool inRange(vec3 main, vec3 aiming, float range) {
+    if ((main.x <= aiming.x && main.x + range >= aiming.x) &&
+       (main.z <= aiming.z && main.z + range >= aiming.z))
+        return true;
+    return false;
+  }
 }

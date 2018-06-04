@@ -1,5 +1,6 @@
 #include <cstdio>
-
+#include <GLFW/glfw3.h>  // Criação de janelas do sistema operacional
+#include "player.hpp"
 #include "enemy.hpp"
 #include "support.h"
 
@@ -14,6 +15,9 @@ Enemy::Enemy(vec4 position, float speed, const char * name, int id, float vision
   this->vision = vision;
   this->damage = damage;
   this->health = health;
+  this->delay = 3;
+  this->timeLastAttack = 0;
+  this->attackEnable = true;
 }
 
 void Enemy::setPosition (vec4 newPosition) {
@@ -22,6 +26,9 @@ void Enemy::setPosition (vec4 newPosition) {
 
 void Enemy::move(vec4 u, vec4 w, vec4 playerPos) {
   lastPosition = position;
+  if(!attackEnable && (glfwGetTime() - timeLastAttack) >= delay)
+    attackEnable = true;
+
   if (!chasePlayer(playerPos))
     return;
 
@@ -84,8 +91,12 @@ float Enemy::getHealth() {
   return health;
 }
 
-void Enemy::hit(float dmg) {
-  health = health - dmg;
+void Enemy::hit(Player* player) {
+  if (attackEnable) {
+    player->setHealth(player->getHealth() - damage);
+    timeLastAttack = glfwGetTime();
+    attackEnable = false;
+  }
 }
 
 int Enemy::chasePlayer(vec4 playerPos) {
@@ -96,4 +107,8 @@ int Enemy::chasePlayer(vec4 playerPos) {
      return 0;
   else
     return 1;
+}
+
+void Enemy::setHealth(float newHealth) {
+  health = newHealth;
 }

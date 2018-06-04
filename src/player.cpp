@@ -8,6 +8,8 @@ using namespace glm;
 Player::Player (vec4 position, float speed, const char * gunName, int gunId) : gun(gunName, gunId) {
   this->position = position;
   this->speed = speed;
+  this->health = 20;
+  this->damage = 1.0f;
 }
 
 void Player::setPosition (vec4 newPosition) {
@@ -73,4 +75,16 @@ void Player::setGun(Gun newGun) {
 
 Gun Player::getGun() {
   return gun;
+}
+
+float Player::getHealth() {
+  return health;
+}
+
+void Player::setHealth(float newHealth) {
+  health = newHealth;
+}
+
+float Player::getDamage() {
+  return damage;
 }

@@ -1,6 +1,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "player.hpp"
 
 #ifndef _enemy_h
 #define _enemy_h
@@ -11,7 +12,8 @@ class Enemy {
     vec4 position, lastPosition;
     const char * name;
     int id;
-    float speed, vision, damage, health;
+    float speed, vision, damage, health, delay, timeLastAttack;
+    bool attackEnable;
   public:
     Enemy(vec4 position, float speed, const char * name, int id, float vision,
           float damage, float health);
@@ -29,7 +31,8 @@ class Enemy {
     void setId(int newId);
     float getDamage();
     float getHealth();
-    void hit(float dmg);
+    void setHealth(float newHealth);
+    void hit(Player* player);
 };
 
 #endif

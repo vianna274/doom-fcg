@@ -16,6 +16,8 @@ class Player {
     bool d_player_moving;
     Gun gun;
     float speed;
+    float health;
+    float damage;
 
   public:
     Player(vec4 position, float speed, const char * gunName, int gunId);
@@ -33,6 +35,9 @@ class Player {
     float getSpeed();
     vec4 getPosition();
     Gun getGun();
+    float getHealth();
+    float getDamage();
+    void setHealth(float newHealth);
 };
 
 #endif

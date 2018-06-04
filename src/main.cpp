@@ -52,6 +52,7 @@
 #include "player.hpp"
 #include "wall.hpp"
 #include "enemy.hpp"
+#include "object.hpp"
 #include <SFML/Audio.hpp>
 #include <unistd.h>
 
@@ -420,7 +421,8 @@ int main(int argc, char* argv[])
           possiblyShoot = true;
         if (g_LeftMouseButtonPressed && possiblyShoot) {
           possiblyShoot = false;
-          mainEnemy.hit(1.0f);
+          /* HIT, para fazer algo melhor tem que fazer abstracao de classes, preguica */
+          mainEnemy.setHealth(mainEnemy.getHealth() - mainPlayer.getDamage());
           shootTime = glfwGetTime();
           glm::vec4 shotPos = camera_view_vector + 0.1f*u + 2.6f*w;
           model = Matrix_Translate(camera_position_c[0] + shotPos[0],
@@ -498,8 +500,12 @@ int main(int argc, char* argv[])
 
         char buffer[80];
         float pad = TextRendering_LineHeight(window);
-        snprintf(buffer, 80,"MONSTER HEALTH: %f", mainEnemy.getHealth());
+        snprintf(buffer, 80,"MONSTER LIFE: %f", mainEnemy.getHealth());
         TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+2*pad/10, 3.0f);
+
+
+        snprintf(buffer, 80,"PLAYER LIFE: %f", mainPlayer.getHealth());
+        TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+2.5*pad, 3.0f);
         // Pegamos um vértice com coordenadas de modelo (0.5, 0.5, 0.5, 1) e o
         // passamos por todos os sistemas de coordenadas armazenados nas
         // matrizes the_model, the_view, e the_projection; e escrevemos na tela
@@ -1730,6 +1736,9 @@ void DrawEnemies() {
   glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
   glUniform1i(object_id_uniform, PISTOL);
   DrawVirtualObject("Pistol");
+  if (ObjectStatic::inRange(mainEnemy.getPosition(), mainPlayer.getPosition(), 2.0f)) {
+    mainEnemy.hit(&mainPlayer);
+  }
 }
 // set makeprg=cd\ ..\ &&\ make\ run\ >/dev/null
 // vim: set spell spelllang=pt_br :

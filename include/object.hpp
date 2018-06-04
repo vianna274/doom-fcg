@@ -25,5 +25,6 @@ class Object {
 
 namespace ObjectStatic {
   bool collisionBetween(Object* obj, vec3 pos);
+  bool inRange(vec3 main, vec3 aiming, float range);
 }
 #endif
