@@ -24,6 +24,7 @@ uniform mat4 projection;
 #define PLANE  2
 #define WALL   3
 #define PISTOL 4
+#define SHOT   5
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -134,6 +135,16 @@ void main()
         Ka = vec3(0.0,0.0,0.0);
         q = 50.0;
     }
+    else if ( object_id == SHOT )
+    {
+        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
+        U = texcoords.x;
+        V = texcoords.y;
+        Kd = vec3(1.0,1.0,0.0);
+        Ks = vec3(1.0,1.0,0.0);
+        Ka = vec3(0.0,0.0,0.0);
+        q = 1.0;
+    }
     vec3 I = vec3(0.2,0.2,0.2);
     // Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
     vec3 Ia = vec3(0.05,0.05,0.05); // PREENCHA AQUI o espectro da luz ambiente
@@ -150,6 +161,8 @@ void main()
       phong_specular_term = vec3(0,0,0);
     } else if (object_id == PISTOL) {
      Kd0 = texture(TextureImage2, vec2(U,V)).rgb;
+   } else if (object_id == SHOT) {
+      Kd0 = Kd;
     }
     vec3 lambert_diffuse_term = Kd0 * I * max(0, dot(n, l));
 

@@ -8,7 +8,8 @@
 #define SPHERE 0
 #define BUNNY  1
 #define PLANE  2
-#define PISTOL 4
 #define WALL   3
+#define PISTOL 4
+#define SHOT   5
 
 #endif

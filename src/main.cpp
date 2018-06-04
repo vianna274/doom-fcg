@@ -51,6 +51,8 @@
 #include "support.h"
 #include "player.hpp"
 #include "wall.hpp"
+#include <SFML/Audio.hpp>
+#include <unistd.h>
 
 // Estrutura que representa um modelo geométrico carregado a partir de um
 // arquivo ".obj". Veja https://en.wikipedia.org/wiki/Wavefront_.obj_file .
@@ -329,6 +331,13 @@ int main(int argc, char* argv[])
     glm::mat4 the_projection;
     glm::mat4 the_model;
     glm::mat4 the_view;
+    sf::SoundBuffer buffer;
+    if (!buffer.loadFromFile("../../data/pistol_sound.wav")){
+      printf("FODEU");
+    }
+    sf::Sound sound;
+    sound.setBuffer(buffer);
+
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
@@ -383,16 +392,33 @@ int main(int argc, char* argv[])
 
         glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
 
-        glm::vec4 pistolPos = camera_view_vector + 0.2f*u + 3.2f*w;
+
+        glm::vec4 pistolPos = camera_view_vector + 0.1f*u + 3.2f*w;
         glm::mat4 model = Matrix_Translate(camera_position_c[0] + pistolPos[0],
-                                  camera_position_c[1] + pistolPos[1] - 0.3,
+                                  camera_position_c[1] + pistolPos[1] - 0.4,
                                   camera_position_c[2] + pistolPos[2])
                  //* Matrix_Rotate(-3.14/6, camera_up_vector)
-                 //* Matrix_Rotate(g_CameraPhi, u)
+                 * Matrix_Rotate(g_CameraPhi, u)
                  * Matrix_Rotate(g_CameraTheta + (3.14*2), camera_up_vector);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, PISTOL);
         DrawVirtualObject("Pistol");
+
+        if (g_LeftMouseButtonPressed) {
+          glm::vec4 shotPos = camera_view_vector + 0.1f*u + 2.6f*w;
+          model = Matrix_Translate(camera_position_c[0] + shotPos[0],
+                                    camera_position_c[1] + shotPos[1] - 0.15,
+                                    camera_position_c[2] + shotPos[2])
+                   //* Matrix_Rotate(-3.14/6, camera_up_vector)
+                   * Matrix_Rotate(g_CameraPhi, u)
+                   * Matrix_Rotate(g_CameraTheta + (3.14*2), camera_up_vector)
+                   * Matrix_Rotate_X(-1.57079632f)
+                   * Matrix_Scale(0.1,0.1,0.1);
+          glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+          glUniform1i(object_id_uniform, SHOT);
+          DrawVirtualObject("plane");
+          sound.play();
+        }
 
         // Agora computamos a matriz de Projeção.
         glm::mat4 projection;
@@ -1088,17 +1114,10 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 // cima da janela OpenGL.
 void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 {
-    // Abaixo executamos o seguinte: caso o botão esquerdo do mouse esteja
-    // pressionado, computamos quanto que o mouse se movimento desde o último
-    // instante de tempo, e usamos esta movimentação para atualizar os
-    // parâmetros que definem a posição da câmera dentro da cena virtual.
-    // Assim, temos que o usuário consegue controlar a câmera.
-
-    if (g_LeftMouseButtonPressed)
+    if (g_RightMouseButtonPressed)
     {
         // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
         float dx = xpos - g_LastCursorPosX;
-        float dy = ypos - g_LastCursorPosY;
 
         // Atualizamos parâmetros da câmera com os deslocamentos
         g_CameraTheta -= 0.01f*dx;
@@ -1113,38 +1132,6 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 
         if (g_CameraPhi < phimin)
             g_CameraPhi = phimin;
-
-        // Atualizamos as variáveis globais para armazenar a posição atual do
-        // cursor como sendo a última posição conhecida do cursor.
-        g_LastCursorPosX = xpos;
-        g_LastCursorPosY = ypos;
-    }
-
-    if (g_RightMouseButtonPressed)
-    {
-        // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
-        float dx = xpos - g_LastCursorPosX;
-        float dy = ypos - g_LastCursorPosY;
-
-        // Atualizamos parâmetros da antebraço com os deslocamentos
-        g_ForearmAngleZ -= 0.01f*dx;
-        g_ForearmAngleX += 0.01f*dy;
-
-        // Atualizamos as variáveis globais para armazenar a posição atual do
-        // cursor como sendo a última posição conhecida do cursor.
-        g_LastCursorPosX = xpos;
-        g_LastCursorPosY = ypos;
-    }
-
-    if (g_MiddleMouseButtonPressed)
-    {
-        // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
-        float dx = xpos - g_LastCursorPosX;
-        float dy = ypos - g_LastCursorPosY;
-
-        // Atualizamos parâmetros da antebraço com os deslocamentos
-        g_TorsoPositionX += 0.01f*dx;
-        g_TorsoPositionY -= 0.01f*dy;
 
         // Atualizamos as variáveis globais para armazenar a posição atual do
         // cursor como sendo a última posição conhecida do cursor.
@@ -1570,7 +1557,7 @@ void DrawEnvironment()
   std::vector<Wall> list, tempList;
 
   DrawFloor(10,10, 0, 0);
-  DrawCeil(1,1, 0, 0);
+  DrawCeil(10,10, 0, 0);
   tempList = DrawHorizontalWall(10, 0, -1);
   list.insert(list.end(), tempList.begin(), tempList.end());
   tempList = DrawVerticalWall(10,-1,0);
