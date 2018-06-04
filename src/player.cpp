@@ -5,9 +5,9 @@
 
 using namespace glm;
 
-Player::Player (vec4 newPosition, float newSpeed) {
-  position = newPosition;
-  speed = newSpeed;
+Player::Player (vec4 position, float speed, const char * gunName, int gunId) : gun(gunName, gunId) {
+  this->position = position;
+  this->speed = speed;
 }
 
 void Player::setPosition (vec4 newPosition) {
@@ -65,4 +65,12 @@ vec4 Player::getPosition() {
 
 float Player::getSpeed() {
   return speed;
+}
+
+void Player::setGun(Gun newGun) {
+  gun = newGun;
+}
+
+Gun Player::getGun() {
+  return gun;
 }

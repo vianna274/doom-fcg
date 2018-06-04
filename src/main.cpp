@@ -139,7 +139,9 @@ glm::vec4 w;
 glm::vec4 u;
 
 glm::vec4 player_pos = glm::vec4(1.0f, 0.0f,1.0f, 1.0f);
-Player mainPlayer(player_pos, 0.05f);
+Player mainPlayer(player_pos, 0.05f, "Pistol", PISTOL);
+char* curGunName;
+int curGunId;
 std::vector<Wall> collisionWalls;
 /* END MINE */
 
@@ -331,13 +333,15 @@ int main(int argc, char* argv[])
     glm::mat4 the_projection;
     glm::mat4 the_model;
     glm::mat4 the_view;
+
+    Gun pistol("Pistol", PISTOL);
+    mainPlayer.setGun(pistol);
     sf::SoundBuffer buffer;
-    if (!buffer.loadFromFile("../../data/pistol_sound.wav")){
-      printf("FODEU");
-    }
+    buffer.loadFromFile("../../data/pistol_sound.wav");
     sf::Sound sound;
     sound.setBuffer(buffer);
-
+    bool possiblyShoot = true;
+    double shootTime = 0.0f;
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
@@ -392,19 +396,24 @@ int main(int argc, char* argv[])
 
         glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
 
+        curGunName = (char*)mainPlayer.getGun().getName();
+        curGunId = mainPlayer.getGun().getId();
 
-        glm::vec4 pistolPos = camera_view_vector + 0.1f*u + 3.2f*w;
-        glm::mat4 model = Matrix_Translate(camera_position_c[0] + pistolPos[0],
-                                  camera_position_c[1] + pistolPos[1] - 0.4,
-                                  camera_position_c[2] + pistolPos[2])
+        glm::vec4 gunPos = camera_view_vector + 0.1f*u + 3.2f*w;
+        glm::mat4 model = Matrix_Translate(camera_position_c[0] + gunPos[0],
+                                  camera_position_c[1] + gunPos[1] - 0.4,
+                                  camera_position_c[2] + gunPos[2])
                  //* Matrix_Rotate(-3.14/6, camera_up_vector)
                  * Matrix_Rotate(g_CameraPhi, u)
                  * Matrix_Rotate(g_CameraTheta + (3.14*2), camera_up_vector);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, PISTOL);
-        DrawVirtualObject("Pistol");
-
-        if (g_LeftMouseButtonPressed) {
+        glUniform1i(object_id_uniform, curGunId);
+        DrawVirtualObject(curGunName);
+        if ((glfwGetTime() - shootTime) >= 0.5)
+          possiblyShoot = true;
+        if (g_LeftMouseButtonPressed && possiblyShoot) {
+          possiblyShoot = false;
+          shootTime = glfwGetTime();
           glm::vec4 shotPos = camera_view_vector + 0.1f*u + 2.6f*w;
           model = Matrix_Translate(camera_position_c[0] + shotPos[0],
                                     camera_position_c[1] + shotPos[1] - 0.15,
