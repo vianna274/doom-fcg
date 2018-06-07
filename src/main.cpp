@@ -1140,21 +1140,27 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 {
     // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
-    float dx = xpos - g_LastCursorPosX;
+    float dx = xpos - g_LastCursorPosX; //Offset x
+    float dy = ypos - g_LastCursorPosY; //Offset y
+
+    float sensivity = 0.05f;
+    dx *= sensivity;
+    dy *= sensivity;
 
     // Atualizamos parâmetros da câmera com os deslocamentos
     g_CameraTheta -= 0.01f*dx;
-    g_CameraPhi   += 0.0f;
+    g_CameraPhi   -= 0.01f*dy;
 
     // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
     float phimax = 3.141592f/2;
     float phimin = -phimax;
 
-    if (g_CameraPhi > phimax)
+    if (g_CameraPhi > phimax) //Pitch
         g_CameraPhi = phimax;
 
-    if (g_CameraPhi < phimin)
+    if (g_CameraPhi < phimin) //Pitch
         g_CameraPhi = phimin;
+
 
     // Atualizamos as variáveis globais para armazenar a posição atual do
     // cursor como sendo a última posição conhecida do cursor.
