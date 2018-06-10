@@ -123,7 +123,7 @@ glm::vec4 g_w;
 glm::vec4 g_u;
 
 Player g_main_player(glm::vec4(1.0f, 0.0f,1.0f, 1.0f), 0.05f, "Pistol", PISTOL);
-Enemy g_main_enemy(glm::vec4(7.0f, 0.0f, 1.0f, 1.0f), 0.03f, "Pistol", PISTOL, 4.0f, 2.0f, 10.0f);
+Enemy g_main_enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.03f, "bunny", BUNNY, 4.0f, 2.0f, 10.0f);
 char* g_current_gun_name;
 int g_current_gun_id;
 std::vector<Wall> collisionWalls;
@@ -212,7 +212,7 @@ int main(int argc, char* argv[])
     // Criamos uma janela do sistema operacional, com 800 colunas e 600 linhas
     // de pixels, e com título "INF01047 ...".
     GLFWwindow* window;
-    window = glfwCreateWindow(800, 600, "INF01047 - 00274721 - Leonardo Vianna Feiteira", NULL, NULL);
+    window = glfwCreateWindow(800, 600, "INF01047 - Battle for Milk", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -298,12 +298,6 @@ int main(int argc, char* argv[])
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    // Variáveis auxiliares utilizadas para chamada à função
-    // TextRendering_ShowModelViewProjection(), armazenando matrizes 4x4.
-    glm::mat4 the_projection;
-    glm::mat4 the_model;
-    glm::mat4 the_view;
-
     Gun pistol("Pistol", PISTOL);
     g_main_player.setGun(pistol);
     sf::SoundBuffer buffer;
@@ -312,16 +306,11 @@ int main(int argc, char* argv[])
     sound.setBuffer(buffer);
     bool possiblyShoot = true;
     double shootTime = 0.0f;
+
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
         // Aqui executamos as operações de renderização
-
-        // Definimos a cor do "fundo" do framebuffer como branco.  Tal cor é
-        // definida como coeficientes RGBA: Red, Green, Blue, Alpha; isto é:
-        // Vermelho, Verde, Azul, Alpha (valor de transparência).
-        // Conversaremos sobre sistemas de cores nas aulas de Modelos de Iluminação.
-        //
         //           R     G     B     A
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -357,13 +346,12 @@ int main(int argc, char* argv[])
         g_u = g_u/norm(g_u);
 
         g_main_player.move(g_u,g_w);
-        if(collided(g_main_player.getPosition())) {
-          g_main_player.unmove();
-        }
+
+        if(collided(g_main_player.getPosition())) g_main_player.unmove();
+
         g_main_enemy.move(g_u,g_w,g_main_player.getPosition());
-        if(collided(g_main_enemy.getPosition())) {
-          g_main_enemy.unmove();
-        }
+
+        if(collided(g_main_enemy.getPosition())) g_main_enemy.unmove();
 
         glm::vec4 camera_position_c  = g_main_player.getPosition(); // Ponto "c", centro da câmera
 
@@ -373,54 +361,44 @@ int main(int argc, char* argv[])
         g_current_gun_id = g_main_player.getGun().getId();
 
         glm::vec4 gunPos = camera_view_vector + 0.1f*g_u + 3.2f*g_w;
-        glm::mat4 model = Matrix_Translate(camera_position_c[0] + gunPos[0],
-                                  camera_position_c[1] + gunPos[1] - 0.4,
-                                  camera_position_c[2] + gunPos[2])
-                 * Matrix_Rotate(g_CameraPhi, g_u)
-                 * Matrix_Rotate(g_CameraTheta + (3.14*2), camera_up_vector);
+
+        glm::mat4 model = Matrix_Translate(camera_position_c[0] + gunPos[0], camera_position_c[1] + gunPos[1] - 0.4,
+                                           camera_position_c[2] + gunPos[2])
+                        * Matrix_Rotate(g_CameraPhi, g_u)
+                        * Matrix_Rotate(g_CameraTheta + (3.14*2), camera_up_vector);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, g_current_gun_id);
         DrawVirtualObject(g_current_gun_name);
-        if ((glfwGetTime() - shootTime) >= 0.5)
-          possiblyShoot = true;
-        if (g_LeftMouseButtonPressed && possiblyShoot) {
-          possiblyShoot = false;
-          /* HIT, para fazer algo melhor tem que fazer abstracao de classes, preguica */
-          g_main_enemy.setHealth(g_main_enemy.getHealth() - g_main_player.getDamage());
-          shootTime = glfwGetTime();
-          glm::vec4 shotPos = camera_view_vector + 0.1f*g_u + 2.6f*g_w;
-          model = Matrix_Translate(camera_position_c[0] + shotPos[0],
-                                    camera_position_c[1] + shotPos[1] - 0.15,
-                                    camera_position_c[2] + shotPos[2])
-                   * Matrix_Rotate(g_CameraPhi, g_u)
-                   * Matrix_Rotate(g_CameraTheta + (3.14*2), camera_up_vector)
-                   * Matrix_Rotate_X(-1.57079632f)
-                   * Matrix_Scale(0.1,0.1,0.1);
-          glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-          glUniform1i(object_id_uniform, SHOT);
-          DrawVirtualObject("plane");
-          sound.play();
-        }
 
+        if ((glfwGetTime() - shootTime) >= 0.5) possiblyShoot = true;
+
+        if (g_LeftMouseButtonPressed && possiblyShoot) {
+            possiblyShoot = false;
+            /* HIT, para fazer algo melhor tem que fazer abstracao de classes, preguica */
+            g_main_enemy.setHealth(g_main_enemy.getHealth() - g_main_player.getDamage());
+            shootTime = glfwGetTime();
+            glm::vec4 shotPos = camera_view_vector + 0.1f*g_u + 2.6f*g_w;
+            model = Matrix_Translate(camera_position_c[0] + shotPos[0], camera_position_c[1] + shotPos[1] - 0.15,
+                                     camera_position_c[2] + shotPos[2])
+                  * Matrix_Rotate(g_CameraPhi, g_u)
+                  * Matrix_Rotate(g_CameraTheta + (3.14*2), camera_up_vector)
+                  * Matrix_Rotate_X(-1.57079632f)
+                  * Matrix_Scale(0.1,0.1,0.1);
+            glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+            glUniform1i(object_id_uniform, SHOT);
+            DrawVirtualObject("plane");
+            sound.play();
+        }
 
         // Agora computamos a matriz de Projeção.
         glm::mat4 projection;
 
-        // Note que, no sistema de coordenadas da câmera, os planos near e far
-        // estão no sentido negativo! Veja slides 191-194 do documento
-        // "Aula_09_Projecoes.pdf".
         float nearplane = -0.1f;  // Posição do "near plane"
         float farplane  = -50.0f; // Posição do "far plane"
 
-        // Projeção Perspectiva.
-        // Para definição do field of view (FOV), veja slide 228 do
-        // documento "Aula_09_Projecoes.pdf".
         float field_of_view = 3.141592 / 3.0f;
         projection = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
 
-        // Enviamos as matrizes "view" e "projection" para a placa de vídeo
-        // (GPU). Veja o arquivo "shader_vertex.glsl", onde estas são
-        // efetivamente aplicadas em todos os pontos.
         glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
         glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
 
@@ -435,41 +413,13 @@ int main(int argc, char* argv[])
 
         snprintf(buffer, 80,"PLAYER LIFE: %f", g_main_player.getHealth());
         TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+2.5*pad, 3.0f);
-        // Pegamos um vértice com coordenadas de modelo (0.5, 0.5, 0.5, 1) e o
-        // passamos por todos os sistemas de coordenadas armazenados nas
-        // matrizes the_model, the_view, e the_projection; e escrevemos na tela
-        // as matrizes e pontos resultantes dessas transformações.
-        //glm::vec4 p_model(0.5f, 0.5f, 0.5f, 1.0f);
-        //TextRendering_ShowModelViewProjection(window, projection, view, model, p_model);
-
-        // Imprimimos na tela os ângulos de Euler que controlam a rotação do
-        // terceiro cubo.
-        // Imprimimos na informação sobre a matriz de projeção sendo utilizada.
         TextRendering_ShowProjection(window);
-
-        // Imprimimos na tela informação sobre o número de quadros renderizados
-        // por segundo (frames per second).
         TextRendering_ShowFramesPerSecond(window);
-
-        // O framebuffer onde OpenGL executa as operações de renderização não
-        // é o mesmo que está sendo mostrado para o usuário, caso contrário
-        // seria possível ver artefatos conhecidos como "screen tearing". A
-        // chamada abaixo faz a troca dos buffers, mostrando para o usuário
-        // tudo que foi renderizado pelas funções acima.
-        // Veja o link: Veja o link: https://en.wikipedia.org/w/index.php?title=Multiple_buffering&oldid=793452829#Double_buffering_in_computer_graphics
         glfwSwapBuffers(window);
-
-        // Verificamos com o sistema operacional se houve alguma interação do
-        // usuário (teclado, mouse, ...). Caso positivo, as funções de callback
-        // definidas anteriormente usando glfwSet*Callback() serão chamadas
-        // pela biblioteca GLFW.
         glfwPollEvents();
     }
-
-    // Finalizamos o uso dos recursos do sistema operacional
     glfwTerminate();
 
-    // Fim do programa
     return 0;
 }
 
@@ -1579,10 +1529,18 @@ std::vector<Wall> DrawVerticalWall(int quant, int startX, int startY) {
 
 void DrawEnemies() {
     glm::mat4 model = Matrix_Identity();
-    model = Matrix_Translate(g_main_enemy.getPosition().x,g_main_enemy.getPosition().y,g_main_enemy.getPosition().z);
+    glm::vec4 p = g_main_player.getPosition() - g_main_enemy.getPosition();
+    // Need to fix
+    model = Matrix_Translate(g_main_enemy.getPosition().x, g_main_enemy.getPosition().y,
+                             g_main_enemy.getPosition().z)
+          * Matrix_Scale(0.5, 0.5, 0.5)
+          * Matrix_Rotate((glm::acos(dotproduct(p, g_main_enemy.getDirection())/(norm(g_main_enemy.getDirection())*norm(p)))+ 1)*180/3.145859, glm::vec4(0,1,0,0));
+
+    g_main_enemy.setDirection(p);
     glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-    glUniform1i(object_id_uniform, PISTOL);
-    DrawVirtualObject("Pistol");
+    glUniform1i(object_id_uniform, g_main_enemy.getId());
+    DrawVirtualObject(g_main_enemy.getName());
+
     if (ObjectStatic::inRange(g_main_enemy.getPosition(), g_main_player.getPosition(), 2.0f)) g_main_enemy.hit(&g_main_player);
 }
 

@@ -18,8 +18,16 @@ Enemy::Enemy(vec4 position, float speed, const char * name, int id, float vision
   this->delay = 3;
   this->timeLastAttack = 0;
   this->attackEnable = true;
+  this->direction = vec4(1,0,0,0);
 }
 
+vec4 Enemy::getDirection() {
+    return direction;
+}
+
+void Enemy::setDirection(vec4 direction) {
+    this->direction = direction;
+}
 void Enemy::setPosition (vec4 newPosition) {
   position = newPosition;
 }

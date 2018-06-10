@@ -9,7 +9,7 @@
 using namespace glm;
 
 class Enemy {
-    vec4 position, lastPosition;
+    vec4 position, lastPosition, direction;
     const char * name;
     int id;
     float speed, vision, damage, health, delay, timeLastAttack;
@@ -17,6 +17,8 @@ class Enemy {
   public:
     Enemy(vec4 position, float speed, const char * name, int id, float vision,
           float damage, float health);
+    vec4 getDirection();
+    void setDirection(vec4 direction);
     void setPosition(vec4 newPosition);
     void move(vec4 u, vec4 w, vec4 playerPos);
     void unmove();
