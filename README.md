@@ -23,38 +23,38 @@ gluLookAt(), gluOrtho2D(), gluPerspective(), gluPickMatrix(), gluProject(), gluU
 
 ### A sua aplicação deve incluir implementação dos seguintes conceitos de Computação Gráfica:
 
-- Objetos virtuais representados através de malhas poligonais complexas (malhas de triângulos).
+- Objetos virtuais representados através de malhas poligonais complexas (malhas de triângulos). :heavy_check_mark:
 
 - No mínimo sua aplicação deve incluir o modelo geométrico "cow.obj".
 
-- Quanto maior a variedade de modelos geométricos, melhor.
+- Quanto maior a variedade de modelos geométricos, melhor. :heavy_check_mark:
 
 - Transformações geométricas de objetos virtuais.
 
-- Através da interação com o teclado e/ou mouse, o usuário deve poder controlar transformações geométricas aplicadas aos objetos virtuais (não somente controle da câmera).
+- Através da interação com o teclado e/ou mouse, o usuário deve poder controlar transformações geométricas aplicadas aos objetos virtuais (não somente controle da câmera). :heavy_check_mark:
 
-- Controle de câmeras virtuais.
+- Controle de câmeras virtuais. :heavy_check_mark:
 
 - No mínimo sua aplicação deve implementar uma câmera look-at e uma câmera livre, conforme praticamos no Laboratório 2.
 
-- No mínimo um objeto virtual deve ser copiado com duas ou mais instâncias, isto é, utilizando duas ou mais Model matrix aplicadas ao mesmo conjunto de vértices.
+- No mínimo um objeto virtual deve ser copiado com duas ou mais instâncias, isto é, utilizando duas ou mais Model matrix aplicadas ao mesmo conjunto de vértices. :heavy_check_mark:
 
-- Testes de intersecção entre objetos virtuais.
+- Testes de intersecção entre objetos virtuais. :heavy_check_mark:
 
 - No mínimo sua aplicação deve utilizar três tipos de teste de intersecção (por exemplo, um teste cubo-cubo e um teste cubo-plano).
 
-- Estes testes devem ter algum propósito dentro da lógica de sua aplicação.
+- Estes testes devem ter algum propósito dentro da lógica de sua aplicação. :heavy_check_mark:
 
 - Modelos de iluminação de objetos geométricos.
 
 - No mínimo sua aplicação deve incluir objetos com os seguintes modelos de iluminação: difusa (Lambert) e Blinn-Phong.
 
-- No mínimo sua aplicação deve incluir objetos com os seguintes modelos de interpolação para iluminação:
+### No mínimo sua aplicação deve incluir objetos com os seguintes modelos de interpolação para iluminação:
 
 - No mínimo um objeto com modelo de Gourad: o modelo de iluminação é avaliado para cada vértice usando suas normais, gerando uma cor, a qual é interpolada para cada pixel durante a rasterização.
 
 - No mínimo um objeto com modelo de Phong: as normais de cada vértice são interpoladas para cada pixel durante a rasterização, e o modelo de iluminação é avaliado para cada pixel, utilizando estas normais interpoladas.
 
-- Mapeamento de texturas.
+- Mapeamento de texturas. :heavy_check_mark:
 
-- No mínimo um objeto virtual de sua aplicação deve ter sua cor definida através de uma textura definida através de uma imagem.
+- No mínimo um objeto virtual de sua aplicação deve ter sua cor definida através de uma textura definida através de uma imagem. :heavy_check_mark:
