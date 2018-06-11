@@ -6,6 +6,8 @@ We created a Doom-like game using our knowledge of CG by using OpenGL and C++.
 
 *Needs to be filled*
 
+- SFML
+
 ### Compatible with Windows and Linux.
 
 ## Requirements:
