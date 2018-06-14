@@ -12,16 +12,17 @@ We created a Doom-like game using our knowledge of CG by using OpenGL and C++.
 
 ## Requirements:
 
-- A sua aplicação deve possibilitar interação em tempo real.
+- A sua aplicação deve possibilitar interação em tempo real. :heavy_check_mark:
 
-- A sua aplicação deve possuir algum objetivo e lógica de controle não-trivial.
+- A sua aplicação deve possuir algum objetivo e lógica de controle não-trivial. :heavy_check_mark:
+
 - A sua aplicação deve utilizar as matrizes que vimos em aula para transformações geométricas (Model matrix), projeções (Projection matrix), e especificação do sistema de coordenadas da câmera (View matrix).
 Você não pode utilizar bibliotecas existentes para o cálculo de câmera, transformações, etc. Por exemplo, as funções a seguir, comumente utilizadas em tutoriais disponíveis na Web, não podem ser utilizadas:
 gluLookAt(), gluOrtho2D(), gluPerspective(), gluPickMatrix(), gluProject(), gluUnProject(), glm::lookAt(), glm::ortho(), glm::perspective(), glm::pickMatrix(), glm::rotate(), glm::scale(), glm::translate(), dentre outras.
 
-- A sua aplicação deve possibilitar interação com o usuário através do mouse e do teclado.
+- A sua aplicação deve possibilitar interação com o usuário através do mouse e do teclado. :heavy_check_mark:
 
-- A qualidade da apresentação do trabalho final, além da presença da dupla nos dias de apresentações de outros colegas, irá contar para a nota final do trabalho.
+- A qualidade da apresentação do trabalho final, além da presença da dupla nos dias de apresentações de outros colegas, irá contar para a nota final do trabalho. :heavy_check_mark:
 
 ### A sua aplicação deve incluir implementação dos seguintes conceitos de Computação Gráfica:
 
@@ -31,7 +32,7 @@ gluLookAt(), gluOrtho2D(), gluPerspective(), gluPickMatrix(), gluProject(), gluU
 
 - Quanto maior a variedade de modelos geométricos, melhor. :heavy_check_mark:
 
-- Transformações geométricas de objetos virtuais.
+- Transformações geométricas de objetos virtuais. :heavy_check_mark:
 
 - Através da interação com o teclado e/ou mouse, o usuário deve poder controlar transformações geométricas aplicadas aos objetos virtuais (não somente controle da câmera). :heavy_check_mark:
 
@@ -47,7 +48,7 @@ gluLookAt(), gluOrtho2D(), gluPerspective(), gluPickMatrix(), gluProject(), gluU
 
 - Estes testes devem ter algum propósito dentro da lógica de sua aplicação. :heavy_check_mark:
 
-- Modelos de iluminação de objetos geométricos.
+- Modelos de iluminação de objetos geométricos. :heavy_check_mark:
 
 - No mínimo sua aplicação deve incluir objetos com os seguintes modelos de iluminação: difusa (Lambert) e Blinn-Phong.
 
