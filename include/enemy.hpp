@@ -10,6 +10,7 @@ using namespace glm;
 
 class Enemy {
     vec4 position, lastPosition, direction;
+    vec3 bbox_min, bbox_max;
     const char * name;
     int id;
     float speed, vision, damage, health, delay, timeLastAttack;
@@ -17,7 +18,11 @@ class Enemy {
   public:
     Enemy(vec4 position, float speed, const char * name, int id, float vision,
           float damage, float health);
-    vec4 getDirection();
+    vec3 getBBoxMax() const;
+    void setBBoxMin(vec3 n_bbox_min);
+    void setBBoxMax(vec3 n_bbox_max);
+    vec3 getBBoxMin() const;
+    vec4 getDirection() const;
     void setDirection(vec4 direction);
     void setPosition(vec4 newPosition);
     void move(vec4 u, vec4 w, vec4 playerPos);
@@ -25,7 +30,7 @@ class Enemy {
     void die();
     void setSpeed(float newSpeed);
     float getSpeed();
-    vec4 getPosition();
+    vec4 getPosition() const;
     int chasePlayer(vec4 playerPos);
     char const * getName();
     void setName(char const * newName);

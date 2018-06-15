@@ -37,6 +37,7 @@
 #include "wall.hpp"
 #include "enemy.hpp"
 #include "object.hpp"
+#include "collision.hpp"
 
 // Estrutura que representa um modelo geométrico carregado a partir de um
 // arquivo ".obj". Veja https://en.wikipedia.org/wiki/Wavefront_.obj_file .
@@ -429,13 +430,17 @@ int main(int argc, char* argv[])
         if (g_LeftMouseButtonPressed && possiblyShoot) {
             possiblyShoot = false;
             /* HIT, para fazer algo melhor tem que fazer abstracao de classes, preguica */
-            g_main_enemy.setHealth(g_main_enemy.getHealth() - g_main_player.getDamage());
+            g_main_enemy.setBBoxMin(g_VirtualScene[g_main_enemy.getName()].bbox_min);
+            g_main_enemy.setBBoxMax(g_VirtualScene[g_main_enemy.getName()].bbox_max);
+            glm::vec4 v0 = g_main_player.getPosition() + glm::vec4(1,0,0,0);
+            glm::vec4 v1 = g_main_player.getPosition() + glm::vec4(0,1,0,0);
+            glm::vec4 tst = glm::vec4(0,0,0,0);
+            if(collision::TraceLine(v0, v1, tst, g_main_enemy))
+                    g_main_enemy.setHealth(g_main_enemy.getHealth() - g_main_player.getDamage());
             shootTime = glfwGetTime();
-            model = Matrix_Translate(0.15f,-0.045f,-0.50f) *
-                    // Matrix_Rotate(g_CameraPhi, g_u)     *
-                    // Matrix_Rotate(g_CameraTheta + (3.14*2), camera_up_vector) *
-                    Matrix_Rotate_X(1.57079632f)       *
-                    Matrix_Scale(0.05,0.05,0.05);
+            model = Matrix_Translate(0.15f,-0.045f,-0.50f)
+                  * Matrix_Rotate_X(1.57079632f)
+                  * Matrix_Scale(0.05,0.05,0.05);
             glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
             glUniform1i(object_id_uniform, SHOT);
             DrawVirtualObject("plane");
@@ -1445,7 +1450,11 @@ void DrawEnvironment()
 
     collisionWalls = list;
 
-    DrawEnemies();
+    if(g_main_enemy.getHealth() > 0)
+        DrawEnemies();
+
+    else
+        g_main_enemy = Enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.03f, "bunny", BUNNY, 4.0f, 2.0f, 10.0f);
 }
 
 void DrawFloor(int x, int y, int startX, int startY) {

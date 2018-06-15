@@ -20,9 +20,27 @@ Enemy::Enemy(vec4 position, float speed, const char * name, int id, float vision
   this->timeLastAttack = 0;
   this->attackEnable = true;
   this->direction = vec4(1,0,0,0);
+  this->bbox_min = vec3(0,0,0);
+  this->bbox_max = vec3(0,0,0);
 }
 
-vec4 Enemy::getDirection() {
+vec3 Enemy::getBBoxMax() const {
+    return bbox_max;
+}
+
+void Enemy::setBBoxMax(vec3 n_bbox_max) {
+    this->bbox_max = n_bbox_max;
+}
+
+void Enemy::setBBoxMin(vec3 n_bbox_min) {
+    this->bbox_min = n_bbox_min;
+}
+
+vec3 Enemy::getBBoxMin() const {
+    return bbox_min;
+}
+
+vec4 Enemy::getDirection() const {
     return direction;
 }
 
@@ -71,7 +89,7 @@ void Enemy::setSpeed(float newSpeed) {
   speed = newSpeed;
 }
 
-vec4 Enemy::getPosition() {
+vec4 Enemy::getPosition() const {
   return position;
 }
 
