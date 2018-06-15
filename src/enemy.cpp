@@ -3,6 +3,7 @@
 #include "player.hpp"
 #include "enemy.hpp"
 #include "support.h"
+#include "object.hpp"
 
 using namespace glm;
 
@@ -57,6 +58,9 @@ void Enemy::move(vec4 u, vec4 w, vec4 playerPos) {
       position.z = position.z - speed;
     }
   }
+
+  if (ObjectStatic::inRange(getPosition(), playerPos, 1.0f))
+    unmove();
 }
 
 void Enemy::unmove() {
