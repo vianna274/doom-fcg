@@ -127,6 +127,8 @@ Enemy g_main_enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.03f, "bunny", BUNNY, 4.
 char* g_current_gun_name;
 int g_current_gun_id;
 std::vector<Wall> collisionWalls;
+bool menu;
+
 /* END MINE */
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
@@ -306,7 +308,52 @@ int main(int argc, char* argv[])
     sound.setBuffer(buffer);
     bool possiblyShoot = true;
     double shootTime = 0.0f;
+    menu = true;
+    while(menu && !glfwWindowShouldClose(window)) {
 
+      glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+      glUseProgram(program_id);
+
+      float r = g_CameraDistance;
+      float y = r*sin(g_CameraPhi);
+      float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
+      float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
+      glm::vec4 camera_position_c  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da câmera
+      glm::vec4 camera_lookat_l    = glm::vec4(0.0f,0.0f,0.0f,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
+      glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c; // Vetor "view", sentido para onde a câmera está virada
+      glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
+      glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
+
+      glm::mat4 projection;
+      float nearplane = -0.1f;  // Posição do "near plane"
+      float farplane  = -50.0f; // Posição do "far plane"
+
+      float field_of_view = 3.141592 / 3.0f;
+      projection = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
+      glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
+      glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
+
+      glm::mat4 model = Matrix_Identity();
+      model = Matrix_Translate(0.0f,0.0f,0.0f);
+      glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+      glUniform1i(object_id_uniform, BUNNY);
+      DrawVirtualObject("bunny");
+
+      char buffer[80];
+      float pad = TextRendering_LineHeight(window);
+      snprintf(buffer, 80,"COMECAR O SHOW (ENTER)");
+      TextRendering_PrintString(window, buffer, -0.7f+pad/5, 0.8f+2*pad/10, 3.0f);
+
+      snprintf(buffer, 80,"TERMINAR O SHOW (ESC)");
+      TextRendering_PrintString(window, buffer, -0.7f+pad/10, -1.0f+2*pad/10, 3.0f);
+
+      glfwSwapBuffers(window);
+      glfwPollEvents();
+
+    }
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
@@ -332,10 +379,6 @@ int main(int argc, char* argv[])
         float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
 
         // Maybe can use it as a death cam.
-        // glm::vec4 camera_position_c  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da câmera
-        // glm::vec4 camera_lookat_l    = glm::vec4(0.0f,0.0f,0.0f,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
-        // glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c; // Vetor "view", sentido para onde a câmera está virada
-        // glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
         glm::vec4 camera_view_vector = glm::vec4(x,y,z, 0.0f);
         glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f);
@@ -1070,6 +1113,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         fflush(stdout);
     }
 
+
     /*
     MOVING ACTIVE
      */
@@ -1119,6 +1163,10 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     {
         g_main_player.setSpeed(g_main_player.getSpeed()/2);
     }
+
+    /* Menu */
+    if (key == GLFW_KEY_ENTER && action == GLFW_PRESS && menu == true)
+        menu = false;
 }
 
 // Definimos o callback para impressão de erros da GLFW no terminal
