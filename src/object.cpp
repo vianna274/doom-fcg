@@ -56,8 +56,8 @@ namespace ObjectStatic {
   }
 
   bool inRange(vec3 main, vec3 aiming, float range) {
-    if ((main.x <= aiming.x && main.x + range >= aiming.x) &&
-       (main.z <= aiming.z && main.z + range >= aiming.z))
+    if ((main.x - range <= aiming.x && main.x + range >= aiming.x) &&
+       (main.z - range <= aiming.z && main.z + range >= aiming.z))
         return true;
     return false;
   }
