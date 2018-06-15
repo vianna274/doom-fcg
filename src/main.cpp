@@ -357,39 +357,6 @@ int main(int argc, char* argv[])
 
         glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
 
-        g_current_gun_name = (char*)g_main_player.getGun().getName();
-        g_current_gun_id = g_main_player.getGun().getId();
-
-        glm::vec4 gunPos = camera_view_vector + 0.1f*g_u + 3.2f*g_w;
-
-        glm::mat4 model = Matrix_Translate(camera_position_c[0] + gunPos[0], camera_position_c[1] + gunPos[1] - 0.4,
-                                           camera_position_c[2] + gunPos[2])
-                        * Matrix_Rotate(g_CameraPhi, g_u)
-                        * Matrix_Rotate(g_CameraTheta + (3.14*2), camera_up_vector);
-        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, g_current_gun_id);
-        DrawVirtualObject(g_current_gun_name);
-
-        if ((glfwGetTime() - shootTime) >= 0.5) possiblyShoot = true;
-
-        if (g_LeftMouseButtonPressed && possiblyShoot) {
-            possiblyShoot = false;
-            /* HIT, para fazer algo melhor tem que fazer abstracao de classes, preguica */
-            g_main_enemy.setHealth(g_main_enemy.getHealth() - g_main_player.getDamage());
-            shootTime = glfwGetTime();
-            glm::vec4 shotPos = camera_view_vector + 0.1f*g_u + 2.6f*g_w;
-            model = Matrix_Translate(camera_position_c[0] + shotPos[0], camera_position_c[1] + shotPos[1] - 0.15,
-                                     camera_position_c[2] + shotPos[2])
-                  * Matrix_Rotate(g_CameraPhi, g_u)
-                  * Matrix_Rotate(g_CameraTheta + (3.14*2), camera_up_vector)
-                  * Matrix_Rotate_X(-1.57079632f)
-                  * Matrix_Scale(0.1,0.1,0.1);
-            glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-            glUniform1i(object_id_uniform, SHOT);
-            DrawVirtualObject("plane");
-            sound.play();
-        }
-
         // Agora computamos a matriz de Projeção.
         glm::mat4 projection;
 
@@ -399,9 +366,42 @@ int main(int argc, char* argv[])
         float field_of_view = 3.141592 / 3.0f;
         projection = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
 
-        glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
+        g_current_gun_name = (char*)g_main_player.getGun().getName();
+        g_current_gun_id = g_main_player.getGun().getId();
+
+        glm::mat4 model = Matrix_Identity();
+        model = Matrix_Translate(0.3f,-0.4f,-0.4f) *
+                Matrix_Rotate_Y(-1.57*4/2);
+        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+
+        glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(Matrix_Identity()));
         glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
 
+        glUniform1i(object_id_uniform, g_current_gun_id);
+        DrawVirtualObject(g_current_gun_name);
+
+
+        if ((glfwGetTime() - shootTime) >= 0.5) possiblyShoot = true;
+
+        if (g_LeftMouseButtonPressed && possiblyShoot) {
+            possiblyShoot = false;
+            /* HIT, para fazer algo melhor tem que fazer abstracao de classes, preguica */
+            g_main_enemy.setHealth(g_main_enemy.getHealth() - g_main_player.getDamage());
+            shootTime = glfwGetTime();
+            model = Matrix_Translate(0.15f,-0.045f,-0.50f) *
+                    // Matrix_Rotate(g_CameraPhi, g_u)     *
+                    // Matrix_Rotate(g_CameraTheta + (3.14*2), camera_up_vector) *
+                    Matrix_Rotate_X(1.57079632f)       *
+                    Matrix_Scale(0.05,0.05,0.05);
+            glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+            glUniform1i(object_id_uniform, SHOT);
+            DrawVirtualObject("plane");
+            sound.play();
+        }
+
+
+        glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
+        glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
         // Desenhamos o plano do chão
         DrawEnvironment();
 
