@@ -123,7 +123,7 @@ bool collided(vec3 position);
 glm::vec4 g_w;
 glm::vec4 g_u;
 
-Player g_main_player(glm::vec4(1.0f, 0.0f,1.0f, 1.0f), 0.05f, "Pistol", PISTOL);
+Player g_main_player(glm::vec4(1.0f, 0.0f,1.0f, 1.0f), 0.05f);
 Enemy g_main_enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.01f, "bunny", BUNNY, 4.0f, 2.0f, 10.0f);
 char* g_current_gun_name;
 int g_current_gun_id;
@@ -301,7 +301,7 @@ int main(int argc, char* argv[])
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    Gun pistol("Pistol", PISTOL);
+    Gun pistol("Pistol", PISTOL, 30, 10, 0.25f, 0.5f);
     g_main_player.setGun(pistol);
     sf::SoundBuffer buffer;
     buffer.loadFromFile("../../data/pistol_sound.wav");
@@ -427,7 +427,7 @@ int main(int argc, char* argv[])
 
         if ((glfwGetTime() - shootTime) >= 0.5) possiblyShoot = true;
 
-        if (g_LeftMouseButtonPressed && possiblyShoot) {
+        if (g_LeftMouseButtonPressed && g_main_player.shoot()) {
             possiblyShoot = false;
             /* HIT, para fazer algo melhor tem que fazer abstracao de classes, preguica */
             g_main_enemy.setBBoxMin(g_VirtualScene[g_main_enemy.getName()].bbox_min);
@@ -605,6 +605,8 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(program_id, "TextureImage0"), 0);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage1"), 1);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage2"), 2);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage3"), 3);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage4"), 4);
     glUseProgram(0);
 }
 
@@ -1111,7 +1113,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     }
 
     // Se o usuário apertar a tecla R, recarregamos os shaders dos arquivos "shader_fragment.glsl" e "shader_vertex.glsl".
-    if (key == GLFW_KEY_R && action == GLFW_PRESS)
+    if (key == GLFW_KEY_V && action == GLFW_PRESS)
     {
         LoadShadersFromFiles();
         fprintf(stdout,"Shaders recarregados!\n");
@@ -1168,6 +1170,12 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     {
         g_main_player.setSpeed(g_main_player.getSpeed()/2);
     }
+
+    if (key == GLFW_KEY_R && action == GLFW_RELEASE)
+    {
+        g_main_player.reload();
+    }
+
 
     /* Menu */
     if (key == GLFW_KEY_ENTER && action == GLFW_PRESS && menu == true)
