@@ -1481,8 +1481,9 @@ void DrawCeil(int x, int y, int startX, int startY) {
 
     for (int i = 0; i < x; i++) {
         for (int j = 0; j < y; j++) {
-            model = Matrix_Translate(xPosition,FLOOR_HEIGHT+2,yPosition)
-                  * Matrix_Rotate_X(-3.141592f);
+            model = Matrix_Translate(xPosition,FLOOR_HEIGHT+2,yPosition) *
+                    Matrix_Rotate_X(-3.141592f) *
+                    Matrix_Scale(1.01,1,1.01);
 
             glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
             glUniform1i(object_id_uniform, PLANE);
@@ -1520,16 +1521,19 @@ std::vector<Wall> DrawHorizontalWall(int quant, int startX, int startY) {
     std::vector<Wall> list;
 
     for (int j = 0; j < quant; j++) {
-        model = Matrix_Translate(xPosition,WALL_HEIGHT,yPosition)
-              * Matrix_Rotate_X(-1.57079632f)
-              * Matrix_Rotate_Z(3.141592f);
+        model = Matrix_Translate(xPosition,WALL_HEIGHT,yPosition) *
+                Matrix_Rotate_X(-1.57079632f) *
+                Matrix_Rotate_Z(3.141592f) *
+                Matrix_Scale(1.01,1,1.01);
 
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, WALL);
         DrawVirtualObject("plane");
 
-        model = Matrix_Translate(xPosition,WALL_HEIGHT,yPosition)
-              * Matrix_Rotate_X(-1.57079632f);
+        model = Matrix_Translate(xPosition,WALL_HEIGHT,yPosition) *
+                Matrix_Rotate_X(-1.57079632f) *
+                Matrix_Scale(1.01,1,1.01);
+
 
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, WALL);
@@ -1560,17 +1564,19 @@ std::vector<Wall> DrawVerticalWall(int quant, int startX, int startY) {
 
     std::vector<Wall> list;
     for (int j = 0; j < quant; j++) {
-        model = Matrix_Translate(xPosition,WALL_HEIGHT,yPosition)
-              * Matrix_Rotate_X(-1.57079632f)
-              * Matrix_Rotate_Z(1.57079632f);
+        model = Matrix_Translate(xPosition,WALL_HEIGHT,yPosition) *
+                Matrix_Rotate_X(-1.57079632f) *
+                Matrix_Rotate_Z(1.57079632f) *
+                Matrix_Scale(1.01,1,1.01);
 
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, WALL);
         DrawVirtualObject("plane");
 
-        model = Matrix_Translate(xPosition,WALL_HEIGHT,yPosition)
-              * Matrix_Rotate_X(-1.57079632f)
-              * Matrix_Rotate_Z(3.141592f + 1.57079632f);
+        model = Matrix_Translate(xPosition,WALL_HEIGHT,yPosition) *
+                Matrix_Rotate_X(-1.57079632f) *
+                Matrix_Rotate_Z(3.141592f + 1.57079632f) *
+                Matrix_Scale(1.01,1,1.01);
 
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, WALL);
@@ -1590,15 +1596,16 @@ void DrawEnemies() {
     // Need to fix
     model = Matrix_Translate(g_main_enemy.getPosition().x, g_main_enemy.getPosition().y,
                              g_main_enemy.getPosition().z)
-          * Matrix_Scale(0.5, 0.5, 0.5)
-          * Matrix_Rotate((glm::acos(dotproduct(p, g_main_enemy.getDirection())/(norm(g_main_enemy.getDirection())*norm(p)))+ 1)*180/3.145859, glm::vec4(0,1,0,0));
+          * Matrix_Scale(0.5, 0.5, 0.5);
+          // * Matrix_Rotate((glm::acos(dotproduct(p, g_main_enemy.getDirection())/(norm(g_main_enemy.getDirection())*norm(p)))+ 1)*180/3.145859, glm::vec4(0,1,0,0));
 
     g_main_enemy.setDirection(p);
     glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
     glUniform1i(object_id_uniform, g_main_enemy.getId());
     DrawVirtualObject(g_main_enemy.getName());
 
-    if (ObjectStatic::inRange(g_main_enemy.getPosition(), g_main_player.getPosition(), 2.0f)) g_main_enemy.hit(&g_main_player);
+    if (ObjectStatic::inRange(g_main_enemy.getPosition(), g_main_player.getPosition(), 2.0f))
+      g_main_enemy.hit(&g_main_player);
 }
 
 // set makeprg=cd\ ..\ &&\ make\ run\ >/dev/null
