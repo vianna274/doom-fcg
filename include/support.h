@@ -11,6 +11,7 @@
 #define WALL   3
 #define PISTOL 4
 #define SHOT   5
+#define COW    6
 
 #define A_KEY 0
 #define D_KEY 1

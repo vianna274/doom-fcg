@@ -25,6 +25,7 @@ uniform mat4 projection;
 #define WALL   3
 #define PISTOL 4
 #define SHOT   5
+#define COW   6
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -103,6 +104,15 @@ void main()
         q = 10;
     }
     else if ( object_id == BUNNY )
+    {
+        // PREENCHA AQUI
+        // Propriedades espectrais do coelho
+        Kd = vec3(0.08,0.4,0.8);
+        Ks = vec3(0.8,0.8,0.8);
+        Ka = vec3(0.04,0.2,0.4);
+        q = 32.0;
+    }
+    else if ( object_id == COW )
     {
         // PREENCHA AQUI
         // Propriedades espectrais do coelho

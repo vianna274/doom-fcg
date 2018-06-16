@@ -1,9 +1,11 @@
 #include "collision.hpp"
 #include <utility>
 #include <algorithm>
+#include <vector>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include "enemy.hpp"
+#include "wall.hpp"
 
 namespace collision
 {
@@ -33,16 +35,23 @@ namespace collision
                 && (ClipLine(2, bbox_min, bbox_max, v0, v1, flow, fhigh)));
     }
 
-
     //Upperlevel function to check which objects have been hit and choose which one is effectively
     //hit
-    bool TraceLine(const glm::vec4& v0, const glm::vec4& v1, const Enemy e){
+    bool TraceLine(const glm::vec4& v0, const glm::vec4& v1, const Enemy e, const std::vector<Wall> walls){
         glm::vec3 min = e.getBBoxMin();
         glm::vec3 max = e.getBBoxMax();
-        glm::vec4 pos = e.getPosition();
+
+        float flowest = 1;
+        //Needs to fix this, maybe other function
+        for(auto x : walls) {
+            float flow = 0, fhigh = 1;
+            if(LineAABBIntersection(x.bbox_min, x.bbox_max, v0, v1, flow, fhigh) && flow < flowest)
+                flowest = flow;
+        }
 
         float flow = 0, fhigh = 1;
-
-        return LineAABBIntersection(min, max, v0, v1, flow, fhigh);
+        bool hit = LineAABBIntersection(min, max, v0, v1, flow, fhigh);
+        //return  hit && (flowest > flow);
+        return  hit;
     }
 }

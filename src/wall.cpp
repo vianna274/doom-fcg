@@ -11,6 +11,4 @@ bool Wall::collision(vec3 otherPosition) {
   return false;
 }
 
-void Wall::draw() {
-
-}
+void Wall::draw() {};

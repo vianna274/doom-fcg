@@ -20,6 +20,7 @@
 #include <stdexcept>
 #include <algorithm>
 #include <iostream>
+#include <string>
 
 // Headers das bibliotecas OpenGL
 #include <glad/glad.h>   // Criação de contexto OpenGL 3.3
@@ -131,6 +132,7 @@ int g_current_gun_id;
 std::vector<Wall> collisionWalls;
 bool menu;
 
+std::vector<std::string> g_types_enemies = std::vector<std::string>{"cow", "bunny"};
 /* END MINE */
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
@@ -187,6 +189,7 @@ GLint projection_uniform;
 GLint object_id_uniform;
 GLint bbox_min_uniform;
 GLint bbox_max_uniform;
+
 
 // Número de texturas carregadas pela função LoadTextureImage()
 GLuint g_NumLoadedTextures = 0;
@@ -285,6 +288,10 @@ int main(int argc, char* argv[])
     ComputeNormals(&pistolmodel);
     BuildTrianglesAndAddToVirtualScene(&pistolmodel);
 
+    ObjModel cowmodel("../../data/cow.obj");
+    ComputeNormals(&cowmodel);
+    BuildTrianglesAndAddToVirtualScene(&cowmodel);
+
     if ( argc > 1 )
     {
         ObjModel model(argv[1]);
@@ -341,8 +348,13 @@ int main(int argc, char* argv[])
       glm::mat4 model = Matrix_Identity();
       model = Matrix_Translate(0.0f,0.0f,0.0f);
       glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-      glUniform1i(object_id_uniform, BUNNY);
-      DrawVirtualObject("bunny");
+
+      if(g_main_enemy.getName() == "bunny"){
+          glUniform1i(object_id_uniform, BUNNY);
+          DrawVirtualObject("bunny");
+      }
+      glUniform1i(object_id_uniform, COW);
+      DrawVirtualObject("cow");
 
       char buffer[80];
       float pad = TextRendering_LineHeight(window);
@@ -438,7 +450,7 @@ int main(int argc, char* argv[])
             glm::vec4 v1 = g_main_player.getPosition() - glm::vec4(g_w.x*100, g_w.y*100, g_w.z*100, 1);;
             glm::vec3 min = g_main_enemy.getBBoxMin();
             glm::vec3 max = g_main_enemy.getBBoxMax();
-            if(collision::TraceLine(v0, v1, g_main_enemy))
+            if(collision::TraceLine(v0, v1, g_main_enemy, collisionWalls))
                     g_main_enemy.setHealth(g_main_enemy.getHealth() - g_main_player.getDamage());
 
             shootTime = glfwGetTime();
@@ -1462,11 +1474,17 @@ void DrawEnvironment()
 
     collisionWalls = list;
 
+    //Enemy Respawn
     if(g_main_enemy.getHealth() > 0)
         DrawEnemies();
 
-    else
-        g_main_enemy = Enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.03f, "bunny", BUNNY, 4.0f, 2.0f, 10.0f);
+    else{
+        int randI = rand() % g_types_enemies.size();
+        if(randI == 1)
+            g_main_enemy = Enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.03f, "bunny", BUNNY, 4.0f, 2.0f, 10.0f);
+        else
+            g_main_enemy = Enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.03f, "cow", COW, 4.0f, 2.0f, 10.0f);
+    }
 }
 
 void DrawFloor(int x, int y, int startX, int startY) {
