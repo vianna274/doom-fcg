@@ -5,6 +5,8 @@
 #include "support.h"
 #include "object.hpp"
 
+#define CUBE_SIZE 0.3
+
 using namespace glm;
 
 Enemy::Enemy(vec4 position, float speed, const char * name, int id, float vision,
@@ -22,9 +24,9 @@ Enemy::Enemy(vec4 position, float speed, const char * name, int id, float vision
   this->direction = vec4(0,0,1,0);
   this->bbox_min = vec3(0,0,0);
   this->bbox_max = vec3(0,0,0);
-  this->h = 1; // Height
-  this->w = 1; // Width
-  this->d = 1; // Depth
+  this->h = CUBE_SIZE; // Height
+  this->w = CUBE_SIZE; // Width
+  this->d = CUBE_SIZE; // Depth
 }
 
 void Enemy::updateBBox(){
