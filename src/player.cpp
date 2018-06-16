@@ -5,7 +5,7 @@
 
 using namespace glm;
 
-Player::Player (vec4 position, float speed, const char * gunName, int gunId) : gun(gunName, gunId) {
+Player::Player (vec4 position, float speed) {
   this->position = position;
   this->speed = speed;
   this->health = 20;
@@ -87,4 +87,14 @@ void Player::setHealth(float newHealth) {
 
 float Player::getDamage() {
   return damage;
+}
+
+bool Player::shoot() {
+  if (gun.shoot())
+    return true;
+  return false;
+}
+
+void Player::reload() {
+  gun.reload();
 }

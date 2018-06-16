@@ -1,10 +1,11 @@
+
+#ifndef _player_h
+#define _player_h
+
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "gun.hpp"
-
-#ifndef _player_h
-#define _player_h
 
 using namespace glm;
 
@@ -20,7 +21,7 @@ class Player {
     float damage;
 
   public:
-    Player(vec4 position, float speed, const char * gunName, int gunId);
+    Player(vec4 position, float speed);
     void setA(bool opt);
     void setW(bool opt);
     void setS(bool opt);
@@ -38,6 +39,8 @@ class Player {
     float getHealth();
     float getDamage();
     void setHealth(float newHealth);
+    bool shoot();
+    void reload();
 };
 
 #endif
