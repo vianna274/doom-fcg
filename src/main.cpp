@@ -433,7 +433,7 @@ int main(int argc, char* argv[])
             g_main_enemy.setBBoxMin(g_VirtualScene[g_main_enemy.getName()].bbox_min);
             g_main_enemy.setBBoxMax(g_VirtualScene[g_main_enemy.getName()].bbox_max);
             glm::vec4 v0 = g_main_player.getPosition() + glm::vec4(1,0,0,0);
-            glm::vec4 v1 = g_main_player.getPosition() + glm::vec4(0,1,0,0);
+            glm::vec4 v1 = g_main_player.getPosition() + glm::vec4(0,1,0,0) + g_CameraPhi*100 + g_CameraTheta*100;
             glm::vec4 tst = glm::vec4(0,0,0,0);
             if(collision::TraceLine(v0, v1, tst, g_main_enemy))
                     g_main_enemy.setHealth(g_main_enemy.getHealth() - g_main_player.getDamage());
