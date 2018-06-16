@@ -19,6 +19,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <algorithm>
+#include <iostream>
 
 // Headers das bibliotecas OpenGL
 #include <glad/glad.h>   // Criação de contexto OpenGL 3.3
@@ -430,12 +431,15 @@ int main(int argc, char* argv[])
         if (g_LeftMouseButtonPressed && possiblyShoot) {
             possiblyShoot = false;
             /* HIT, para fazer algo melhor tem que fazer abstracao de classes, preguica */
-            g_main_enemy.setBBoxMin(g_VirtualScene[g_main_enemy.getName()].bbox_min);
-            g_main_enemy.setBBoxMax(g_VirtualScene[g_main_enemy.getName()].bbox_max);
-            glm::vec4 v0 = g_main_player.getPosition() + glm::vec4(1,0,0,0);
-            glm::vec4 v1 = g_main_player.getPosition() + glm::vec4(0,1,0,0) + g_CameraPhi*100 + g_CameraTheta*100;
-            glm::vec4 tst = glm::vec4(0,0,0,0);
-            if(collision::TraceLine(v0, v1, tst, g_main_enemy))
+            g_main_enemy.updateBBox();
+            glm::vec4 v0 = g_main_player.getPosition() - g_w;
+            glm::vec4 v1 = g_main_player.getPosition() - g_w;
+            v1 = glm::vec4(v1.x*100, v1.y*100, v1.z*100, v1.w);
+            std::cout << "v0: " << v0.x << " " << v0.y << " " << v0.z <<" v1:"<< v1.x << " " << v1.y << " " << v1.z << std::endl;
+            glm::vec3 min = g_main_enemy.getBBoxMin();
+            glm::vec3 max = g_main_enemy.getBBoxMax();
+            std::cout << "min: " << min.x << " " << min.y << " " << min.z <<" max:"<< max.x << " " << max.y << " " << max.z << std::endl;
+            if(collision::TraceLine(v0, v1, g_main_enemy))
                     g_main_enemy.setHealth(g_main_enemy.getHealth() - g_main_player.getDamage());
             shootTime = glfwGetTime();
             model = Matrix_Translate(0.15f,-0.045f,-0.50f)

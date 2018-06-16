@@ -13,11 +13,12 @@ class Enemy {
     vec3 bbox_min, bbox_max;
     const char * name;
     int id;
-    float speed, vision, damage, health, delay, timeLastAttack;
+    float speed, vision, damage, health, delay, timeLastAttack, d, w, h;
     bool attackEnable;
   public:
     Enemy(vec4 position, float speed, const char * name, int id, float vision,
           float damage, float health);
+    void updateBBox();
     vec3 getBBoxMax() const;
     void setBBoxMin(vec3 n_bbox_min);
     void setBBoxMax(vec3 n_bbox_max);

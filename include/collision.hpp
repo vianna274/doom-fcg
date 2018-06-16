@@ -7,11 +7,7 @@
 
 namespace collision
 {
-    bool LineAABBIntersection(const glm::vec3 bbox_min, const glm::vec3 bbox_max,
-                              const glm::vec4& v0, const glm::vec4& v1, glm::vec4& vecIntersection,
-                              float& flFraction);
-
-    bool TraceLine(const glm::vec4& v0, const glm::vec4& v1, glm::vec4& vecIntersection, const Enemy e);
+    bool TraceLine(const glm::vec4& v0, const glm::vec4& v1, const Enemy e);
 }
 
 #endif

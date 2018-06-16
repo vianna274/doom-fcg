@@ -19,9 +19,22 @@ Enemy::Enemy(vec4 position, float speed, const char * name, int id, float vision
   this->delay = 3;
   this->timeLastAttack = 0;
   this->attackEnable = true;
-  this->direction = vec4(1,0,0,0);
+  this->direction = vec4(0,0,1,0);
   this->bbox_min = vec3(0,0,0);
   this->bbox_max = vec3(0,0,0);
+  this->h = 1; // Height
+  this->w = 1; // Width
+  this->d = 1; // Depth
+}
+
+void Enemy::updateBBox(){
+    bbox_min.x = position.x - w;
+    bbox_min.y = position.y - h;
+    bbox_min.z = position.z - d;
+
+    bbox_max.x = position.x + w;
+    bbox_max.y = position.y + h;
+    bbox_max.z = position.z + d;
 }
 
 vec3 Enemy::getBBoxMax() const {
