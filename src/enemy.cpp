@@ -53,29 +53,16 @@ void Enemy::setPosition (vec4 newPosition) {
 
 void Enemy::move(vec4 u, vec4 w, vec4 playerPos) {
   lastPosition = position;
+  vec4 newPosition;
   if(!attackEnable && (glfwGetTime() - timeLastAttack) >= delay)
     attackEnable = true;
 
   if (!chasePlayer(playerPos))
     return;
 
-  if (playerPos.x > position.x) {
-    if (playerPos.z > position.z) {
-      position.x = position.x + speed;
-      position.z = position.z + speed;
-    } else {
-      position.x = position.x + speed;
-      position.z = position.z - speed;
-    }
-  } else {
-    if (playerPos.z > position.z) {
-      position.x = position.x - speed;
-      position.z = position.z + speed;
-    } else {
-      position.x = position.x - speed;
-      position.z = position.z - speed;
-    }
-  }
+  newPosition = (playerPos - position) * speed;
+  position.x += newPosition.x;
+  position.z += newPosition.z;
 
   if (ObjectStatic::inRange(getPosition(), playerPos, 1.0f))
     unmove();

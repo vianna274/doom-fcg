@@ -65,7 +65,8 @@ void main()
 
     // Vetor que define o sentido da fonte de luz em relação ao ponto atual.
     vec4 l = normalize(camera_position - position_world);
-    vec4 l2 = normalize(vec4(-1,1,-1,0.0));
+    vec4 lightPos = vec4(10,0.3,10,1);
+    vec4 l2 = normalize(lightPos - p);
 
     // Vetor que define o sentido da câmera em relação ao ponto atual.
     vec4 v = normalize(camera_position - p);
@@ -86,9 +87,9 @@ void main()
         // Coordenadas de textura do plano, obtidas do arquivo OBJ.
         U = texcoords.x;
         V = texcoords.y;
-        Kd = vec3(0.8,0.2,0.2);
-        Ks = vec3(0.2,0.2,0.2);
-        Ka = vec3(0.0,0.0,0.0);
+        Kd = vec3(0.8,0.8,0.8);
+        Ks = vec3(0.0,0.0,0.0);
+        Ka = vec3(0.01,0.01,0.01);
         q = 0.9;
     }
     else if ( object_id == WALL )
@@ -97,8 +98,8 @@ void main()
         U = texcoords.x;
         V = texcoords.y;
         Kd = vec3(0.8,0.2,0.2);
-        Ks = vec3(0.2,0.2,0.2);
-        Ka = vec3(0.0,0.0,0.0);
+        Ks = vec3(0.0,0.0,0.0);
+        Ka = vec3(0.01,0.01,0.01);
         q = 10;
     }
     else if ( object_id == BUNNY )
@@ -130,9 +131,9 @@ void main()
         Ka = vec3(0.0,0.0,0.0);
         q = 1.0;
     }
-    vec3 I = vec3(0.6,0.6,0.6);
+    vec3 I = vec3(0.3,0.3,0.3);
     vec3 I2 = vec3(0.1,0.1,0.1);
-    vec3 Ia = vec3(0.3,0.3,0.3); // PREENCHA AQUI o espectro da luz ambiente
+    vec3 Ia = vec3(0.1,0.1,0.1); // PREENCHA AQUI o espectro da luz ambiente
 
     vec3 Kd0 = texture(TextureImage2, vec2(U,V)).rgb;
     vec3 ambient_term = Ka * Ia;
@@ -141,12 +142,8 @@ void main()
 
     if (object_id == PLANE) {
       Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
-      // ambient_term = vec3(0,0,0);
-      // phong_specular_term2 = vec3(0,0,0);
     } else if (object_id == WALL) {
       Kd0 = texture(TextureImage1, vec2(U,V)).rgb;
-      ambient_term = vec3(0,0,0);
-      phong_specular_term = vec3(0,0,0);
     } else if (object_id == PISTOL) {
      Kd0 = texture(TextureImage2, vec2(U,V)).rgb;
     } else if (object_id == SHOT) {
@@ -157,11 +154,16 @@ void main()
 
     // Cor final do fragmento calculada com uma combinação dos termos difuso,
     // especular, e ambiente. Veja slide 134 do documento "Aula_17_e_18_Modelos_de_Iluminacao.pdf".
-    color =  phong_specular_term  + lambert_diffuse_term + ambient_term +
-             phong_specular_term2 + lambert_diffuse_term2;
+    vec3 color1 = phong_specular_term + lambert_diffuse_term;
+    vec3 color2 = phong_specular_term2 + lambert_diffuse_term2;
 
-    color = color/(2*(sqrt(pow(camera_position.x - position_world.x,2) +
+    color1 = color1/(2*(sqrt(pow(camera_position.x - position_world.x,2) +
                 pow(camera_position.y - position_world.y,2) +
                 pow(camera_position.z - position_world.z,2))));
+    color2 = 2*color2/((sqrt(pow(lightPos.x - position_world.x,2) +
+                pow(lightPos.y - position_world.y,2) +
+                pow(lightPos.z - position_world.z,2))));
+
+    color = ambient_term + color1 + color2;
     color = pow(color, vec3(1.0,1.0,1.0)/2.2);
 }
