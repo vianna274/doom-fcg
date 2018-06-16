@@ -124,7 +124,7 @@ glm::vec4 g_w;
 glm::vec4 g_u;
 
 Player g_main_player(glm::vec4(1.0f, 0.0f,1.0f, 1.0f), 0.05f, "Pistol", PISTOL);
-Enemy g_main_enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.03f, "bunny", BUNNY, 4.0f, 2.0f, 10.0f);
+Enemy g_main_enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.01f, "bunny", BUNNY, 4.0f, 2.0f, 10.0f);
 char* g_current_gun_name;
 int g_current_gun_id;
 std::vector<Wall> collisionWalls;
