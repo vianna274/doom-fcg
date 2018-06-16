@@ -12,7 +12,7 @@ in vec4 position_model;
 
 // Coordenadas de textura obtidas do arquivo OBJ (se existirem!)
 in vec2 texcoords;
-
+in vec3 vertex_color;
 // Matrizes computadas no código C++ e enviadas para a GPU
 uniform mat4 model;
 uniform mat4 view;
@@ -146,7 +146,7 @@ void main()
       Kd0 = texture(TextureImage1, vec2(U,V)).rgb;
     } else if (object_id == PISTOL) {
      Kd0 = texture(TextureImage2, vec2(U,V)).rgb;
-    } else if (object_id == SHOT) {
+    } else  {
       Kd0 = Kd;
     }
     vec3 lambert_diffuse_term = Kd0 * I * max(0, dot(n, l));
@@ -166,4 +166,6 @@ void main()
 
     color = ambient_term + color1 + color2;
     color = pow(color, vec3(1.0,1.0,1.0)/2.2);
+    if (object_id == BUNNY)
+      color = vertex_color;
 }
