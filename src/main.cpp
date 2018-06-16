@@ -440,6 +440,7 @@ int main(int argc, char* argv[])
             glm::vec3 max = g_main_enemy.getBBoxMax();
             if(collision::TraceLine(v0, v1, g_main_enemy))
                     g_main_enemy.setHealth(g_main_enemy.getHealth() - g_main_player.getDamage());
+
             shootTime = glfwGetTime();
             model = Matrix_Translate(0.15f,-0.045f,-0.50f)
                   * Matrix_Rotate_X(1.57079632f)
