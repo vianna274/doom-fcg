@@ -325,7 +325,7 @@ int main(int argc, char* argv[])
             g_main_player.setGun(pistol);
             g_main_player.setPosition(glm::vec4(1.0f, 0.0f,1.0f, 1.0f));
             g_main_player.setHealth(20);
-            g_main_enemy = Enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.01f, g_main_enemy.getName(),
+            g_main_enemy = Enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.02f, g_main_enemy.getName(),
                                  g_main_enemy.getId(), 4.0f, 2.0f, 10.0f);
             glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1478,9 +1478,9 @@ void DrawEnvironment()
     else{
         int randI = rand() % g_types_enemies.size();
         if(randI == 1)
-            g_main_enemy = Enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.03f, "bunny", BUNNY, 4.0f, 2.0f, 10.0f);
+            g_main_enemy = Enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.02f, "bunny", BUNNY, 4.0f, 2.0f, 10.0f);
         else
-            g_main_enemy = Enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.03f, "cow", COW, 4.0f, 2.0f, 10.0f);
+            g_main_enemy = Enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.01f, "cow", COW, 6.0f, 3.0f, 15.0f);
     }
 }
 
@@ -1621,10 +1621,16 @@ void DrawEnemies() {
     glm::mat4 model = Matrix_Identity();
     glm::vec4 p = g_main_player.getPosition() - g_main_enemy.getPosition();
     // Need to fix
-    model = Matrix_Translate(g_main_enemy.getPosition().x, g_main_enemy.getPosition().y,
+    if(g_main_enemy.getId() == BUNNY)
+        model = Matrix_Translate(g_main_enemy.getPosition().x, g_main_enemy.getPosition().y,
                              g_main_enemy.getPosition().z)
-          * Matrix_Scale(0.5, 0.5, 0.5);
+              * Matrix_Scale(0.5, 0.5, 0.5);
           // * Matrix_Rotate((glm::acos(dotproduct(p, g_main_enemy.getDirection())/(norm(g_main_enemy.getDirection())*norm(p)))+ 1)*180/3.145859, glm::vec4(0,1,0,0));
+    else
+        model = Matrix_Translate(g_main_enemy.getPosition().x, g_main_enemy.getPosition().y,
+                     g_main_enemy.getPosition().z)
+              * Matrix_Scale(0.75, 0.75, 0.75);
+
 
     g_main_enemy.setDirection(p);
     glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));

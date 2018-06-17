@@ -5,7 +5,8 @@
 #include "support.h"
 #include "object.hpp"
 
-#define CUBE_SIZE 0.3
+#define CUBE_SIZE_B 0.3
+#define CUBE_SIZE_C 0.5
 
 using namespace glm;
 
@@ -24,9 +25,16 @@ Enemy::Enemy(vec4 position, float speed, const char * name, int id, float vision
   this->direction = vec4(0,0,1,0);
   this->bbox_min = vec3(0,0,0);
   this->bbox_max = vec3(0,0,0);
-  this->h = CUBE_SIZE; // Height
-  this->w = CUBE_SIZE; // Width
-  this->d = CUBE_SIZE; // Depth
+  if(this->id == 6){ //If it is the cow
+      this->h = CUBE_SIZE_C; // Height
+      this->w = CUBE_SIZE_C; // Width
+      this->d = CUBE_SIZE_C; // Depth
+  }
+  else{ //Bunny
+      this->h = CUBE_SIZE_B; // Height
+      this->w = CUBE_SIZE_B; // Width
+      this->d = CUBE_SIZE_B; // Depth
+  }
 }
 
 void Enemy::updateBBox(){
