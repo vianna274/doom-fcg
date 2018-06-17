@@ -130,7 +130,7 @@ Enemy g_main_enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.01f, "bunny", BUNNY, 4.
 char* g_current_gun_name;
 int g_current_gun_id;
 std::vector<Wall> collisionWalls;
-bool menu;
+bool g_menu;
 
 std::vector<std::string> g_types_enemies = std::vector<std::string>{"cow", "bunny"};
 /* END MINE */
@@ -317,170 +317,167 @@ int main(int argc, char* argv[])
     sound.setBuffer(buffer);
     bool possiblyShoot = true;
     double shootTime = 0.0f;
-    menu = true;
-    while(menu && !glfwWindowShouldClose(window)) {
+    g_menu = true;
+    while(!glfwWindowShouldClose(window)){
+        // Look-at menu loop
+        while(g_menu) {
+            Gun pistol("Pistol", PISTOL, 30, 10, 0.25f, 0.5f);
+            g_main_player.setGun(pistol);
+            g_main_player.setPosition(glm::vec4(1.0f, 0.0f,1.0f, 1.0f));
+            g_main_player.setHealth(20);
+            g_main_enemy = Enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.01f, g_main_enemy.getName(),
+                                 g_main_enemy.getId(), 4.0f, 2.0f, 10.0f);
+            glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glUseProgram(program_id);
+            float r = g_CameraDistance;
+            float y = r*sin(g_CameraPhi);
+            float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
+            float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
+            glm::vec4 camera_position_c  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da câmera
+            glm::vec4 camera_lookat_l    = glm::vec4(0.0f,0.0f,0.0f,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
+            glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c; // Vetor "view", sentido para onde a câmera está virada
+            glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
+            glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
 
-      glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+            glm::mat4 projection;
+            float nearplane = -0.1f;  // Posição do "near plane"
+            float farplane  = -50.0f; // Posição do "far plane"
 
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            float field_of_view = 3.141592 / 3.0f;
+            projection = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
+            glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
+            glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
 
-      glUseProgram(program_id);
-
-      float r = g_CameraDistance;
-      float y = r*sin(g_CameraPhi);
-      float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
-      float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
-      glm::vec4 camera_position_c  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da câmera
-      glm::vec4 camera_lookat_l    = glm::vec4(0.0f,0.0f,0.0f,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
-      glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c; // Vetor "view", sentido para onde a câmera está virada
-      glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
-      glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
-
-      glm::mat4 projection;
-      float nearplane = -0.1f;  // Posição do "near plane"
-      float farplane  = -50.0f; // Posição do "far plane"
-
-      float field_of_view = 3.141592 / 3.0f;
-      projection = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
-      glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
-      glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
-
-      glm::mat4 model = Matrix_Identity();
-      model = Matrix_Translate(0.0f,0.0f,0.0f);
-      glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-
-      if(g_main_enemy.getName() == "bunny"){
-          glUniform1i(object_id_uniform, BUNNY);
-          DrawVirtualObject("bunny");
-      }
-      glUniform1i(object_id_uniform, COW);
-      DrawVirtualObject("cow");
-
-      char buffer[80];
-      float pad = TextRendering_LineHeight(window);
-      snprintf(buffer, 80,"COMECAR O SHOW (ENTER)");
-      TextRendering_PrintString(window, buffer, -0.7f+pad/5, 0.8f+2*pad/10, 3.0f);
-
-      snprintf(buffer, 80,"TERMINAR O SHOW (ESC)");
-      TextRendering_PrintString(window, buffer, -0.7f+pad/10, -1.0f+2*pad/10, 3.0f);
-
-      glfwSwapBuffers(window);
-      glfwPollEvents();
-
-    }
-    // Ficamos em loop, renderizando, até que o usuário feche a janela
-    while (!glfwWindowShouldClose(window))
-    {
-        // Aqui executamos as operações de renderização
-        //           R     G     B     A
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-        // "Pintamos" todos os pixels do framebuffer com a cor definida acima,
-        // e também resetamos todos os pixels do Z-buffer (depth buffer).
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Pedimos para a GPU utilizar o programa de GPU criado acima (contendo
-        // os shaders de vértice e fragmentos).
-        glUseProgram(program_id);
-
-        // Computamos a posição da câmera utilizando coordenadas esféricas.  As
-        // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
-        // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
-        // e ScrollCallback().
-        float r = g_CameraDistance;
-        float y = r*sin(g_CameraPhi);
-        float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
-        float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
-
-        // Maybe can use it as a death cam.
-
-        glm::vec4 camera_view_vector = glm::vec4(x,y,z, 0.0f);
-        glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f);
-
-        g_w = -camera_view_vector;
-        g_w = g_w/norm(g_w);
-        g_u = crossproduct(camera_up_vector, g_w);
-        g_u = g_u/norm(g_u);
-
-        g_main_player.move(g_u,g_w);
-
-        if(collided(g_main_player.getPosition())) g_main_player.unmove();
-
-        g_main_enemy.move(g_u,g_w,g_main_player.getPosition());
-
-        if(collided(g_main_enemy.getPosition())) g_main_enemy.unmove();
-
-        glm::vec4 camera_position_c  = g_main_player.getPosition(); // Ponto "c", centro da câmera
-
-        glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
-
-        // Agora computamos a matriz de Projeção.
-        glm::mat4 projection;
-
-        float nearplane = -0.1f;  // Posição do "near plane"
-        float farplane  = -50.0f; // Posição do "far plane"
-
-        float field_of_view = 3.141592 / 3.0f;
-        projection = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
-
-        g_current_gun_name = (char*)g_main_player.getGun().getName();
-        g_current_gun_id = g_main_player.getGun().getId();
-
-        glm::mat4 model = Matrix_Identity();
-        model = Matrix_Translate(0.3f,-0.4f,-0.4f) *
-                Matrix_Rotate_Y(-1.57*4/2);
-        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-
-        glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(Matrix_Identity()));
-        glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
-
-        glUniform1i(object_id_uniform, g_current_gun_id);
-        DrawVirtualObject(g_current_gun_name);
-
-
-        if ((glfwGetTime() - shootTime) >= 0.5) possiblyShoot = true;
-
-        if (g_LeftMouseButtonPressed && g_main_player.shoot()) {
-            possiblyShoot = false;
-            /* HIT, para fazer algo melhor tem que fazer abstracao de classes, preguica */
-            // Might be a good Idea to put it in a specific function for hitting and collision
-            // ray/box
-            g_main_enemy.updateBBox();
-            glm::vec4 v0 = g_main_player.getPosition() - g_w;
-            glm::vec4 v1 = g_main_player.getPosition() - glm::vec4(g_w.x*100, g_w.y*100, g_w.z*100, 1);;
-            glm::vec3 min = g_main_enemy.getBBoxMin();
-            glm::vec3 max = g_main_enemy.getBBoxMax();
-            if(collision::TraceLine(v0, v1, g_main_enemy, collisionWalls))
-                    g_main_enemy.setHealth(g_main_enemy.getHealth() - g_main_player.getDamage());
-
-            shootTime = glfwGetTime();
-            model = Matrix_Translate(0.15f,-0.045f,-0.50f)
-                  * Matrix_Rotate_X(1.57079632f)
-                  * Matrix_Scale(0.05,0.05,0.05);
+            glm::mat4 model = Matrix_Identity();
+            model = Matrix_Translate(0.0f,0.0f,0.0f);
             glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-            glUniform1i(object_id_uniform, SHOT);
-            DrawVirtualObject("plane");
-            sound.play();
+
+            if(g_main_enemy.getName() == "bunny"){
+                glUniform1i(object_id_uniform, BUNNY);
+                DrawVirtualObject("bunny");
+            }
+            else{
+                glUniform1i(object_id_uniform, COW);
+                DrawVirtualObject("cow");
+            }
+
+            char buffer[80];
+            float pad = TextRendering_LineHeight(window);
+            snprintf(buffer, 80,"COMECAR O SHOW (ENTER)");
+            TextRendering_PrintString(window, buffer, -0.7f+pad/5, 0.8f+2*pad/10, 3.0f);
+
+            snprintf(buffer, 80,"TERMINAR O SHOW (ESC)");
+            TextRendering_PrintString(window, buffer, -0.7f+pad/10, -1.0f+2*pad/10, 3.0f);
+
+            glfwSwapBuffers(window);
+            glfwPollEvents();
         }
+        // Ingame loop
+        while (!g_menu)
+        {
+            glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            glUseProgram(program_id);
+
+            float r = g_CameraDistance;
+            float y = r*sin(g_CameraPhi);
+            float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
+            float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
+
+            // Maybe can use it as a death cam.
+
+            glm::vec4 camera_view_vector = glm::vec4(x,y,z, 0.0f);
+            glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f);
+
+            g_w = -camera_view_vector;
+            g_w = g_w/norm(g_w);
+            g_u = crossproduct(camera_up_vector, g_w);
+            g_u = g_u/norm(g_u);
+
+            g_main_player.move(g_u,g_w);
+
+            if(collided(g_main_player.getPosition())) g_main_player.unmove();
+
+            g_main_enemy.move(g_u,g_w,g_main_player.getPosition());
+
+            if(collided(g_main_enemy.getPosition())) g_main_enemy.unmove();
+
+            glm::vec4 camera_position_c  = g_main_player.getPosition(); // Ponto "c", centro da câmera
+
+            glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
+
+            // Agora computamos a matriz de Projeção.
+            glm::mat4 projection;
+
+            float nearplane = -0.1f;  // Posição do "near plane"
+            float farplane  = -50.0f; // Posição do "far plane"
+
+            float field_of_view = 3.141592 / 3.0f;
+            projection = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
+
+            g_current_gun_name = (char*)g_main_player.getGun().getName();
+            g_current_gun_id = g_main_player.getGun().getId();
+
+            glm::mat4 model = Matrix_Identity();
+            model = Matrix_Translate(0.3f,-0.4f,-0.4f) *
+                    Matrix_Rotate_Y(-1.57*4/2);
+            glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+
+            glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(Matrix_Identity()));
+            glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
+
+            glUniform1i(object_id_uniform, g_current_gun_id);
+            DrawVirtualObject(g_current_gun_name);
 
 
-        glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
-        glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
-        // Desenhamos o plano do chão
-        DrawEnvironment();
+            if ((glfwGetTime() - shootTime) >= 0.5) possiblyShoot = true;
 
-        char buffer[80];
-        float pad = TextRendering_LineHeight(window);
-        snprintf(buffer, 80,"MONSTER LIFE: %f", g_main_enemy.getHealth());
-        TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+2*pad/10, 3.0f);
+            if (g_LeftMouseButtonPressed && g_main_player.shoot()) {
+                possiblyShoot = false;
+                /* HIT, para fazer algo melhor tem que fazer abstracao de classes, preguica */
+                // Might be a good Idea to put it in a specific function for hitting and collision
+                // ray/box
+                g_main_enemy.updateBBox();
+                glm::vec4 v0 = g_main_player.getPosition() - g_w;
+                glm::vec4 v1 = g_main_player.getPosition() - glm::vec4(g_w.x*100, g_w.y*100, g_w.z*100, 1);;
+                glm::vec3 min = g_main_enemy.getBBoxMin();
+                glm::vec3 max = g_main_enemy.getBBoxMax();
+                if(collision::TraceLine(v0, v1, g_main_enemy, collisionWalls))
+                        g_main_enemy.setHealth(g_main_enemy.getHealth() - g_main_player.getDamage());
+
+                shootTime = glfwGetTime();
+                model = Matrix_Translate(0.15f,-0.045f,-0.50f)
+                      * Matrix_Rotate_X(1.57079632f)
+                      * Matrix_Scale(0.05,0.05,0.05);
+                glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+                glUniform1i(object_id_uniform, SHOT);
+                DrawVirtualObject("plane");
+                sound.play();
+            }
 
 
-        snprintf(buffer, 80,"PLAYER LIFE: %f", g_main_player.getHealth());
-        TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+2.5*pad, 3.0f);
-        TextRendering_ShowProjection(window);
-        TextRendering_ShowFramesPerSecond(window);
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+            glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
+            glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
+            // Desenhamos o plano do chão
+            DrawEnvironment();
+
+            char buffer[80];
+            float pad = TextRendering_LineHeight(window);
+            snprintf(buffer, 80,"MONSTER LIFE: %f", g_main_enemy.getHealth());
+            TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+2*pad/10, 3.0f);
+
+
+            snprintf(buffer, 80,"PLAYER LIFE: %f", g_main_player.getHealth());
+            TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+2.5*pad, 3.0f);
+            TextRendering_ShowProjection(window);
+            TextRendering_ShowFramesPerSecond(window);
+            glfwSwapBuffers(window);
+            glfwPollEvents();
+            if(g_main_player.getHealth() <= 0) g_menu = true;
+        }
     }
     glfwTerminate();
 
@@ -1194,8 +1191,8 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
 
 
     /* Menu */
-    if (key == GLFW_KEY_ENTER && action == GLFW_PRESS && menu == true)
-        menu = false;
+    if (key == GLFW_KEY_ENTER && action == GLFW_PRESS && g_menu == true)
+        g_menu = false;
 }
 
 // Definimos o callback para impressão de erros da GLFW no terminal
