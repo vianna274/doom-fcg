@@ -18,7 +18,7 @@ We created a Doom-like game using our knowledge of CG by using OpenGL and C++.
 
 - A sua aplicação deve utilizar as matrizes que vimos em aula para transformações geométricas (Model matrix), projeções (Projection matrix), e especificação do sistema de coordenadas da câmera (View matrix).
 Você não pode utilizar bibliotecas existentes para o cálculo de câmera, transformações, etc. Por exemplo, as funções a seguir, comumente utilizadas em tutoriais disponíveis na Web, não podem ser utilizadas:
-gluLookAt(), gluOrtho2D(), gluPerspective(), gluPickMatrix(), gluProject(), gluUnProject(), glm::lookAt(), glm::ortho(), glm::perspective(), glm::pickMatrix(), glm::rotate(), glm::scale(), glm::translate(), dentre outras.
+gluLookAt(), gluOrtho2D(), gluPerspective(), gluPickMatrix(), gluProject(), gluUnProject(), glm::lookAt(), glm::ortho(), glm::perspective(), glm::pickMatrix(), glm::rotate(), glm::scale(), glm::translate(), dentre outras. :heavy_check_mark:
 
 - A sua aplicação deve possibilitar interação com o usuário através do mouse e do teclado. :heavy_check_mark:
 
@@ -28,7 +28,7 @@ gluLookAt(), gluOrtho2D(), gluPerspective(), gluPickMatrix(), gluProject(), gluU
 
 - Objetos virtuais representados através de malhas poligonais complexas (malhas de triângulos). :heavy_check_mark:
 
-- No mínimo sua aplicação deve incluir o modelo geométrico "cow.obj".
+- No mínimo sua aplicação deve incluir o modelo geométrico "cow.obj". :heavy_check_mark:
 
 - Quanto maior a variedade de modelos geométricos, melhor. :heavy_check_mark:
 
@@ -38,13 +38,13 @@ gluLookAt(), gluOrtho2D(), gluPerspective(), gluPickMatrix(), gluProject(), gluU
 
 - Controle de câmeras virtuais. :heavy_check_mark:
 
-- No mínimo sua aplicação deve implementar uma câmera look-at e uma câmera livre, conforme praticamos no Laboratório 2.
+- No mínimo sua aplicação deve implementar uma câmera look-at e uma câmera livre, conforme praticamos no Laboratório 2. :heavy_check_mark:
 
 - No mínimo um objeto virtual deve ser copiado com duas ou mais instâncias, isto é, utilizando duas ou mais Model matrix aplicadas ao mesmo conjunto de vértices. :heavy_check_mark:
 
 - Testes de intersecção entre objetos virtuais. :heavy_check_mark:
 
-- No mínimo sua aplicação deve utilizar três tipos de teste de intersecção (por exemplo, um teste cubo-cubo e um teste cubo-plano).
+- No mínimo sua aplicação deve utilizar três tipos de teste de intersecção (por exemplo, um teste cubo-cubo e um teste cubo-plano). :heavy_check_mark:
 
 - Estes testes devem ter algum propósito dentro da lógica de sua aplicação. :heavy_check_mark:
 
@@ -54,9 +54,9 @@ gluLookAt(), gluOrtho2D(), gluPerspective(), gluPickMatrix(), gluProject(), gluU
 
 ### No mínimo sua aplicação deve incluir objetos com os seguintes modelos de interpolação para iluminação:
 
-- No mínimo um objeto com modelo de Gourad: o modelo de iluminação é avaliado para cada vértice usando suas normais, gerando uma cor, a qual é interpolada para cada pixel durante a rasterização.
+- No mínimo um objeto com modelo de Gourad: o modelo de iluminação é avaliado para cada vértice usando suas normais, gerando uma cor, a qual é interpolada para cada pixel durante a rasterização. :heavy_check_mark:
 
-- No mínimo um objeto com modelo de Phong: as normais de cada vértice são interpoladas para cada pixel durante a rasterização, e o modelo de iluminação é avaliado para cada pixel, utilizando estas normais interpoladas.
+- No mínimo um objeto com modelo de Phong: as normais de cada vértice são interpoladas para cada pixel durante a rasterização, e o modelo de iluminação é avaliado para cada pixel, utilizando estas normais interpoladas. :heavy_check_mark:
 
 - Mapeamento de texturas. :heavy_check_mark:
 
