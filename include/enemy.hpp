@@ -9,11 +9,11 @@
 using namespace glm;
 
 class Enemy {
-    vec4 position, lastPosition, direction;
+    vec4 position, lastPosition, direction, spawn;
     vec3 bbox_min, bbox_max;
     const char * name;
     int id;
-    float speed, vision, damage, health, delay, timeLastAttack, d, w, h;
+    float speed, vision, damage, health, delay, timeLastAttack, respawnTime, d, w, h;
     bool attackEnable;
   public:
     Enemy(vec4 position, float speed, const char * name, int id, float vision,
@@ -41,6 +41,9 @@ class Enemy {
     float getHealth();
     void setHealth(float newHealth);
     bool hit(Player* player);
+    void setSpawn(vec4 newSpawn);
+    vec4 getSpawn();
+    void updateRespawnTime();
 };
 
 #endif

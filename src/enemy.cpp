@@ -21,10 +21,12 @@ Enemy::Enemy(vec4 position, float speed, const char * name, int id, float vision
   this->health = health;
   this->delay = 3;
   this->timeLastAttack = 0;
-  this->attackEnable = true;
+  this->attackEnable = false;
   this->direction = vec4(0,0,1,0);
   this->bbox_min = vec3(0,0,0);
   this->bbox_max = vec3(0,0,0);
+  this->spawn = vec4(0,0,0,0);
+  this->respawnTime = glfwGetTime();
   if(this->id == 6){ //If it is the cow
       this->h = CUBE_SIZE_C; // Height
       this->w = CUBE_SIZE_C; // Width
@@ -77,7 +79,8 @@ void Enemy::setPosition (vec4 newPosition) {
 void Enemy::move(vec4 u, vec4 w, vec4 playerPos) {
   lastPosition = position;
   vec4 newPosition;
-  if(!attackEnable && (glfwGetTime() - timeLastAttack) >= delay)
+  if(!attackEnable && (glfwGetTime() - timeLastAttack) >= delay &&
+      (glfwGetTime() - respawnTime >= 1.5f))
     attackEnable = true;
 
   if (!chasePlayer(playerPos))
@@ -153,4 +156,16 @@ int Enemy::chasePlayer(vec4 playerPos) {
 
 void Enemy::setHealth(float newHealth) {
   health = newHealth;
+}
+
+void Enemy::setSpawn(vec4 newSpawn) {
+  spawn = newSpawn;
+}
+
+vec4 Enemy::getSpawn() {
+  return spawn;
+}
+
+void Enemy::updateRespawnTime() {
+  respawnTime = glfwGetTime();
 }

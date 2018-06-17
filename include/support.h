@@ -12,7 +12,7 @@
 #define PISTOL 4
 #define SHOT   5
 #define COW    6
-
+#define MAX_ENEMIES 8
 #define A_KEY 0
 #define D_KEY 1
 #define S_KEY 2

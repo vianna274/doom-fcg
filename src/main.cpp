@@ -121,18 +121,52 @@ void DrawEnemies();
 std::vector<Wall> DrawHorizontalWall(int quant, int startX, int startY);
 std::vector<Wall> DrawVerticalWall(int quant, int startX, int startY);
 bool collided(vec3 position);
+void setEnemies();
+bool availabeSpawn(int index);
 // GLOBAL W U TO MOVE
 glm::vec4 g_w;
 glm::vec4 g_u;
 
 Player g_main_player(glm::vec4(1.0f, 0.0f,1.0f, 1.0f), 0.05f);
-Enemy g_main_enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.01f, "bunny", BUNNY, 4.0f, 2.0f, 10.0f);
+std::vector<Enemy> g_main_enemies;
 char* g_current_gun_name;
 int g_current_gun_id;
 std::vector<Wall> collisionWalls;
 bool g_menu;
 std::vector<std::string> g_types_enemies = std::vector<std::string>{"cow", "bunny"};
-std::vector<glm::vec4> g_spawns = std::vector<glm::vec4>{glm::vec4(7, -0.5, 1, 1),glm::vec4(7, -0.5, 7, 1),glm::vec4(10, -0.5, 10, 1),glm::vec4(7, -0.5, 10, 1),glm::vec4(1, -0.5, 13, 1)};
+std::vector<glm::vec4> g_spawns = std::vector<glm::vec4>{glm::vec4(3, -0.5, 3, 1),
+                                                         glm::vec4(6, -0.5, 3, 1),
+                                                         glm::vec4(9, -0.5, 3, 1),
+                                                         glm::vec4(12, -0.5, 3, 1),
+                                                         glm::vec4(15, -0.5, 3, 1),
+                                                         glm::vec4(18, -0.5, 3, 1),
+                                                         glm::vec4(3, -0.5, 8, 1),
+                                                          glm::vec4(6, -0.5, 8, 1),
+                                                          glm::vec4(9, -0.5, 8, 1),
+                                                          glm::vec4(12, -0.5, 8, 1),
+                                                          glm::vec4(15, -0.5, 8, 1),
+                                                          glm::vec4(18, -0.5, 8, 1),
+                                                          glm::vec4(3, -0.5, 3, 1),
+                                                         glm::vec4(6, -0.5, 12, 1),
+                                                         glm::vec4(9, -0.5, 12, 1),
+                                                         glm::vec4(12, -0.5, 12, 1),
+                                                         glm::vec4(15, -0.5, 12, 1),
+                                                         glm::vec4(18, -0.5, 12, 1),
+                                                         glm::vec4(3, -0.5, 15, 1),
+                                                        glm::vec4(6, -0.5, 15, 1),
+                                                        glm::vec4(9, -0.5, 15, 1),
+                                                        glm::vec4(12, -0.5, 15, 1),
+                                                        glm::vec4(15, -0.5, 15, 1),
+                                                        glm::vec4(18, -0.5, 15, 1),
+                                                        glm::vec4(3, -0.5, 3, 1),
+                                                       glm::vec4(6, -0.5, 18, 1),
+                                                       glm::vec4(9, -0.5, 18, 1),
+                                                       glm::vec4(12, -0.5, 18, 1),
+                                                       glm::vec4(15, -0.5, 18, 1),
+                                                       glm::vec4(18, -0.5, 18, 1)};
+
+
+
 sf::SoundBuffer bufferReload;
 sf::Sound soundReload;
 
@@ -330,16 +364,16 @@ int main(int argc, char* argv[])
     bool possiblyShoot = true;
     double shootTime = 0.0f;
     g_menu = true;
-
+    setEnemies();
     while(!glfwWindowShouldClose(window)){
         // Look-at menu loop
-        while(g_menu) {
+        while(g_menu && !glfwWindowShouldClose(window)) {
             Gun pistol("Pistol", PISTOL, 30, 10, 0.25f, 0.5f);
             g_main_player.setGun(pistol);
             g_main_player.setPosition(glm::vec4(1.0f, 0.0f,1.0f, 1.0f));
             g_main_player.setHealth(20);
-            g_main_enemy = Enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.02f, g_main_enemy.getName(),
-                                 g_main_enemy.getId(), 4.0f, 2.0f, 10.0f);
+            Enemy g_main_enemy = Enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.02f, g_main_enemies[0].getName(),
+                                 g_main_enemies[0].getId(), 4.0f, 2.0f, 5.0f);
             glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glUseProgram(program_id);
@@ -366,7 +400,7 @@ int main(int argc, char* argv[])
             model = Matrix_Translate(0.0f,0.0f,0.0f);
             glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
 
-            if(g_main_enemy.getName() == "bunny"){
+            if(g_main_enemies[0].getName() == "bunny"){
                 glUniform1i(object_id_uniform, BUNNY);
                 DrawVirtualObject("bunny");
             }
@@ -414,10 +448,12 @@ int main(int argc, char* argv[])
 
             if(collided(g_main_player.getPosition())) g_main_player.unmove();
 
-            g_main_enemy.move(g_u,g_w,g_main_player.getPosition());
+            for (int i = 0; i < MAX_ENEMIES; i++) {
+              g_main_enemies[i].move(g_u,g_w,g_main_player.getPosition());
 
-            if(collided(g_main_enemy.getPosition())) g_main_enemy.unmove();
-
+              if(collided(g_main_enemies[i].getPosition()))
+                g_main_enemies[i].unmove();
+            }
             glm::vec4 camera_position_c  = g_main_player.getPosition(); // Ponto "c", centro da câmera
 
             glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
@@ -457,13 +493,17 @@ int main(int argc, char* argv[])
                 /* HIT, para fazer algo melhor tem que fazer abstracao de classes, preguica */
                 // Might be a good Idea to put it in a specific function for hitting and collision
                 // ray/box
-                g_main_enemy.updateBBox();
                 glm::vec4 v0 = g_main_player.getPosition() - g_w;
-                glm::vec4 v1 = g_main_player.getPosition() - glm::vec4(g_w.x*100, g_w.y*100, g_w.z*100, 1);;
-                glm::vec3 min = g_main_enemy.getBBoxMin();
-                glm::vec3 max = g_main_enemy.getBBoxMax();
-                if(collision::TraceLine(v0, v1, g_main_enemy, collisionWalls))
-                        g_main_enemy.setHealth(g_main_enemy.getHealth() - g_main_player.getDamage());
+                glm::vec4 v1 = g_main_player.getPosition() - glm::vec4(g_w.x*100, g_w.y*100, g_w.z*100, 1);
+                for (int i = 0; i < MAX_ENEMIES; i++) {
+                  g_main_enemies[i].updateBBox();
+                  glm::vec3 min = g_main_enemies[i].getBBoxMin();
+                  glm::vec3 max = g_main_enemies[i].getBBoxMax();
+                  if(collision::TraceLine(v0, v1, g_main_enemies[i], collisionWalls))
+                    g_main_enemies[i].setHealth(g_main_enemies[i].getHealth() - g_main_player.getDamage());
+                }
+
+
 
                 shootTime = glfwGetTime();
                 if (g_RightMouseButtonPressed) {
@@ -489,7 +529,7 @@ int main(int argc, char* argv[])
 
             char buffer[80];
             float pad = TextRendering_LineHeight(window);
-            snprintf(buffer, 80,"MONSTER LIFE: %f", g_main_enemy.getHealth());
+            snprintf(buffer, 80,"AMMO: %d // RELOADS: %d", g_main_player.getGun().getBullets(), g_main_player.getGun().getReloads());
             TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+2*pad/10, 3.0f);
 
 
@@ -1264,7 +1304,7 @@ void TextRendering_ShowLifeBar(GLFWwindow* window, const char * txt)
     float pad = TextRendering_LineHeight(window);
 
     char buffer[80];
-    snprintf(buffer, 80, "HEALTH %f", g_main_enemy.getHealth());
+    snprintf(buffer, 80, "HEALTH %f", g_main_enemies[0].getHealth());
 
     TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+2*pad/10, 1.0f);
 }
@@ -1496,17 +1536,19 @@ void DrawEnvironment()
     collisionWalls = list;
 
     //Enemy Respawn
-    if(g_main_enemy.getHealth() > 0)
-        DrawEnemies();
-
-    else{
+    for (int i = 0; i < MAX_ENEMIES; i++) {
+      if(g_main_enemies[i].getHealth() <= 0) {
         int randE = rand() % g_types_enemies.size();
         int randS = rand() % g_spawns.size();
         if(randE == 1)
-            g_main_enemy = Enemy(g_spawns[randS], 0.02f, "bunny", BUNNY, 4.0f, 2.0f, 10.0f);
+            g_main_enemies[i] = Enemy(g_spawns[randS], 0.02f, "bunny", BUNNY, 4.0f, 2.0f, 3.0f);
         else
-            g_main_enemy = Enemy(g_spawns[randS], 0.01f, "cow", COW, 6.0f, 3.0f, 15.0f);
+            g_main_enemies[i] = Enemy(g_spawns[randS], 0.01f, "cow", COW, 6.0f, 3.0f, 5.0f);
+        g_main_enemies[i].setSpawn(g_spawns[i]);
+        g_main_enemies[i].updateRespawnTime();
+      }
     }
+    DrawEnemies();
 }
 
 void DrawFloor(int x, int y, int startX, int startY) {
@@ -1643,29 +1685,55 @@ std::vector<Wall> DrawVerticalWall(int quant, int startX, int startY) {
 }
 
 void DrawEnemies() {
+  for (int i = 0; i < MAX_ENEMIES; i++) {
     glm::mat4 model = Matrix_Identity();
-    glm::vec4 p = g_main_player.getPosition() - g_main_enemy.getPosition();
+    glm::vec4 p = g_main_player.getPosition() - g_main_enemies[i].getPosition();
     // Need to fix
-    if(g_main_enemy.getId() == BUNNY)
-        model = Matrix_Translate(g_main_enemy.getPosition().x, g_main_enemy.getPosition().y,
-                             g_main_enemy.getPosition().z)
+    if(g_main_enemies[i].getId() == BUNNY)
+        model = Matrix_Translate(g_main_enemies[i].getPosition().x, g_main_enemies[i].getPosition().y,
+                             g_main_enemies[i].getPosition().z)
               * Matrix_Scale(0.5, 0.5, 0.5);
-          // * Matrix_Rotate((glm::acos(dotproduct(p, g_main_enemy.getDirection())/(norm(g_main_enemy.getDirection())*norm(p)))+ 1)*180/3.145859, glm::vec4(0,1,0,0));
+          // * Matrix_Rotate((glm::acos(dotproduct(p, g_main_enemies[i].getDirection())/(norm(g_main_enemies[i].getDirection())*norm(p)))+ 1)*180/3.145859, glm::vec4(0,1,0,0));
     else
-        model = Matrix_Translate(g_main_enemy.getPosition().x, g_main_enemy.getPosition().y,
-                     g_main_enemy.getPosition().z)
+        model = Matrix_Translate(g_main_enemies[i].getPosition().x, g_main_enemies[i].getPosition().y,
+                     g_main_enemies[i].getPosition().z)
               * Matrix_Scale(0.75, 0.75, 0.75);
 
 
-    g_main_enemy.setDirection(p);
+    g_main_enemies[i].setDirection(p);
     glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-    glUniform1i(object_id_uniform, g_main_enemy.getId());
-    DrawVirtualObject(g_main_enemy.getName());
+    glUniform1i(object_id_uniform, g_main_enemies[i].getId());
+    DrawVirtualObject(g_main_enemies[i].getName());
 
-    if (ObjectStatic::inRange(g_main_enemy.getPosition(), g_main_player.getPosition(), 2.0f)) {
-      if (g_main_enemy.hit(&g_main_player) && g_main_enemy.getName() == "cow")
+    if (ObjectStatic::inRange(g_main_enemies[i].getPosition(), g_main_player.getPosition(), 2.0f)) {
+      if (g_main_enemies[i].hit(&g_main_player) && g_main_enemies[i].getName() == "cow")
         soundCowAttack.play();
     }
+  }
 }
 
+void setEnemies() {
+  for (int i = 0; i < MAX_ENEMIES; i++) {
+    int randE = rand() % g_types_enemies.size();
+    int randS = rand() % g_spawns.size();
+    while(!availabeSpawn(randS))
+      randS = rand() % g_spawns.size();
+    Enemy *newEnemy;
+    if(randE == 1)
+        newEnemy = new Enemy(g_spawns[randS], 0.02f, "bunny", BUNNY, 8.0f, 2.0f, 3.0f);
+    else
+        newEnemy = new Enemy(g_spawns[randS], 0.01f, "cow", COW, 12.0f, 3.0f, 5.0f);
+    newEnemy->setSpawn(g_spawns[randS]);
+    newEnemy->updateRespawnTime();
+    g_main_enemies.insert(g_main_enemies.begin(), *newEnemy);
+  }
+}
+
+bool availabeSpawn(int index) {
+  for (int i = 0; i < g_main_enemies.size(); i++) {
+    if (g_spawns[index] == g_main_enemies[i].getSpawn())
+      return false;
+  }
+  return true;
+}
 // set makeprg=cd\ ..\ &&\ make\ run\ >/dev/null
