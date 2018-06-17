@@ -99,7 +99,7 @@ void main()
         U = texcoords.x;
         V = texcoords.y;
         Kd = vec3(0.8,0.2,0.2);
-        Ks = vec3(0.0,0.0,0.0);
+        Ks = vec3(0.1,0.1,0.1);
         Ka = vec3(0.01,0.01,0.01);
         q = 10;
     }
@@ -115,9 +115,9 @@ void main()
     else if ( object_id == COW )
     {
         // PREENCHA AQUI
-        // Propriedades espectrais do coelho
-        Kd = vec3(0.08,0.4,0.8);
-        Ks = vec3(0.8,0.8,0.8);
+        // Propriedades espectrais da vaca
+        Kd = vec3(1.0,0.0,0.0);
+        Ks = vec3(1.0,0.0,0.0);
         Ka = vec3(0.04,0.2,0.4);
         q = 32.0;
     }
@@ -146,9 +146,13 @@ void main()
     vec3 Ia = vec3(0.1,0.1,0.1); // PREENCHA AQUI o espectro da luz ambiente
 
     vec3 Kd0 = texture(TextureImage2, vec2(U,V)).rgb;
+    vec4 h = (v + l)/length(v + l);
+    vec4 h2 = (v + l2)/length(v + l2);
     vec3 ambient_term = Ka * Ia;
     vec3 phong_specular_term  = Ks * I * pow(max(0, dot(r, v)), q);
     vec3 phong_specular_term2  = Ks * I2 * pow(max(0, dot(r2, v)), q);
+    vec3 blinn_phong_specular_term  = Ks * I * pow(max(0, dot(h, v)), q);
+    vec3 blinn_phong_specular_term2  = Ks * I * pow(max(0, dot(h2, v)), q);
 
     if (object_id == PLANE) {
       Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
@@ -166,6 +170,8 @@ void main()
     // especular, e ambiente. Veja slide 134 do documento "Aula_17_e_18_Modelos_de_Iluminacao.pdf".
     vec3 color1 = phong_specular_term + lambert_diffuse_term;
     vec3 color2 = phong_specular_term2 + lambert_diffuse_term2;
+    vec3 color3 = blinn_phong_specular_term + lambert_diffuse_term;
+    vec3 color4 = blinn_phong_specular_term2 + lambert_diffuse_term2;
 
     color1 = color1/(2*(sqrt(pow(camera_position.x - position_world.x,2) +
                 pow(camera_position.y - position_world.y,2) +
@@ -173,9 +179,20 @@ void main()
     color2 = 2*color2/((sqrt(pow(lightPos.x - position_world.x,2) +
                 pow(lightPos.y - position_world.y,2) +
                 pow(lightPos.z - position_world.z,2))));
+    color3 = color3/(2*(sqrt(pow(camera_position.x - position_world.x,2) +
+                pow(camera_position.y - position_world.y,2) +
+                pow(camera_position.z - position_world.z,2))));
+    color4 = 2*color4/((sqrt(pow(lightPos.x - position_world.x,2) +
+                pow(lightPos.y - position_world.y,2) +
+                pow(lightPos.z - position_world.z,2))));
 
     color = ambient_term + color1 + color2;
     color = pow(color, vec3(1.0,1.0,1.0)/2.2);
     if (object_id == BUNNY)
       color = vertex_color;
+
+    if( object_id == COW ){ //Iluminacao Blinn-Phong
+        color = ambient_term + color3 + color4;
+    }
+
 }
