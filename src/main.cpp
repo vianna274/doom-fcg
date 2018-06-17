@@ -132,6 +132,7 @@ int g_current_gun_id;
 std::vector<Wall> collisionWalls;
 bool g_menu;
 std::vector<std::string> g_types_enemies = std::vector<std::string>{"cow", "bunny"};
+std::vector<glm::vec4> g_spawns = std::vector<glm::vec4>{glm::vec4(7, -0.5, 1, 1),glm::vec4(7, -0.5, 7, 1),glm::vec4(10, -0.5, 10, 1),glm::vec4(7, -0.5, 10, 1),glm::vec4(1, -0.5, 13, 1)};
 sf::SoundBuffer bufferReload;
 sf::Sound soundReload;
 
@@ -1499,11 +1500,12 @@ void DrawEnvironment()
         DrawEnemies();
 
     else{
-        int randI = rand() % g_types_enemies.size();
-        if(randI == 1)
-            g_main_enemy = Enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.02f, "bunny", BUNNY, 4.0f, 2.0f, 10.0f);
+        int randE = rand() % g_types_enemies.size();
+        int randS = rand() % g_spawns.size();
+        if(randE == 1)
+            g_main_enemy = Enemy(g_spawns[randS], 0.02f, "bunny", BUNNY, 4.0f, 2.0f, 10.0f);
         else
-            g_main_enemy = Enemy(glm::vec4(7.0f, -0.5f, 1.0f, 1.0f), 0.01f, "cow", COW, 6.0f, 3.0f, 15.0f);
+            g_main_enemy = Enemy(g_spawns[randS], 0.01f, "cow", COW, 6.0f, 3.0f, 15.0f);
     }
 }
 
