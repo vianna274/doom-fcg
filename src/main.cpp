@@ -131,7 +131,6 @@ char* g_current_gun_name;
 int g_current_gun_id;
 std::vector<Wall> collisionWalls;
 bool g_menu;
-
 std::vector<std::string> g_types_enemies = std::vector<std::string>{"cow", "bunny"};
 /* END MINE */
 
@@ -318,6 +317,7 @@ int main(int argc, char* argv[])
     bool possiblyShoot = true;
     double shootTime = 0.0f;
     g_menu = true;
+
     while(!glfwWindowShouldClose(window)){
         // Look-at menu loop
         while(g_menu) {
@@ -421,17 +421,24 @@ int main(int argc, char* argv[])
             g_current_gun_name = (char*)g_main_player.getGun().getName();
             g_current_gun_id = g_main_player.getGun().getId();
 
-            glm::mat4 model = Matrix_Identity();
-            model = Matrix_Translate(0.3f,-0.4f,-0.4f) *
-                    Matrix_Rotate_Y(-1.57*4/2);
-            glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-
             glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(Matrix_Identity()));
             glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
+            glm::mat4 model = Matrix_Identity();
 
-            glUniform1i(object_id_uniform, g_current_gun_id);
-            DrawVirtualObject(g_current_gun_name);
+            if (g_RightMouseButtonPressed) {
+              model = Matrix_Translate(0.0f,-0.35f,-0.5f) *
+                      Matrix_Rotate_Y(-3.14);
 
+              glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+              glUniform1i(object_id_uniform, g_current_gun_id);
+              DrawVirtualObject(g_current_gun_name);
+            } else {
+              model = Matrix_Translate(0.3f,-0.4f,-0.4f) *
+                      Matrix_Rotate_Y(-1.57*4/2);
+              glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+              glUniform1i(object_id_uniform, g_current_gun_id);
+              DrawVirtualObject(g_current_gun_name);
+            }
 
             if ((glfwGetTime() - shootTime) >= 0.5) possiblyShoot = true;
 
@@ -449,9 +456,15 @@ int main(int argc, char* argv[])
                         g_main_enemy.setHealth(g_main_enemy.getHealth() - g_main_player.getDamage());
 
                 shootTime = glfwGetTime();
-                model = Matrix_Translate(0.15f,-0.045f,-0.50f)
-                      * Matrix_Rotate_X(1.57079632f)
-                      * Matrix_Scale(0.05,0.05,0.05);
+                if (g_RightMouseButtonPressed) {
+                  model = Matrix_Translate(0.0f,-0.05f,-2.0f) *
+                          Matrix_Rotate_X(1.57079632f) *
+                          Matrix_Scale(0.08,0.08,0.08);
+                } else {
+                  model = Matrix_Translate(0.30f,-0.1f,-0.80f)
+                        * Matrix_Rotate_X(1.57079632f)
+                        * Matrix_Scale(0.05,0.05,0.05);
+                }
                 glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
                 glUniform1i(object_id_uniform, SHOT);
                 DrawVirtualObject("plane");
