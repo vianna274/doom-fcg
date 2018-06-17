@@ -13,6 +13,7 @@ Gun::Gun(char const * name, int id, int bullets, int reloads, float delayFire, f
   this->bullets = bullets;
   this->maxBullets = bullets;
   this->lastShot = 0.0f;
+  this->lastReload = 0.0f;
 }
 
 char const * Gun::getName() {
@@ -64,7 +65,7 @@ float Gun::getDelayReload() {
 }
 
 bool Gun::shoot() {
-  if (bullets > 0 && (glfwGetTime() - lastShot >= delayFire)) {
+  if (bullets > 0 && (glfwGetTime() - lastShot >= delayFire) && glfwGetTime() - lastReload >= delayReload) {
     lastShot = glfwGetTime();
     bullets--;
     return true;
@@ -73,7 +74,8 @@ bool Gun::shoot() {
 }
 
 bool Gun::reload() {
-  if (reloads > 0) {
+  if (reloads > 0 && (glfwGetTime() - lastReload >= delayReload)) {
+    lastReload = glfwGetTime();
     bullets = maxBullets;
     reloads--;
     return true;

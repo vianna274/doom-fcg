@@ -1,10 +1,11 @@
 #ifndef _gun_h
 #define _gun_h
+#include <SFML/Audio.hpp>
 
 class Gun {
     char const * name;
     int id, bullets, reloads, maxBullets;
-    float lastShot, delayFire, delayReload;
+    float lastShot, lastReload, delayFire, delayReload;
   public:
     Gun();
     Gun(char const * name, int id, int bullets, int reloads, float delayFire, float delayReload);

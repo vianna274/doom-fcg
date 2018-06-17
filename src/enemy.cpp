@@ -131,12 +131,14 @@ float Enemy::getHealth() {
   return health;
 }
 
-void Enemy::hit(Player* player) {
+bool Enemy::hit(Player* player) {
   if (attackEnable) {
     player->setHealth(player->getHealth() - damage);
     timeLastAttack = glfwGetTime();
     attackEnable = false;
+    return true;
   }
+  return false;
 }
 
 int Enemy::chasePlayer(vec4 playerPos) {

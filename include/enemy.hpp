@@ -40,7 +40,7 @@ class Enemy {
     float getDamage();
     float getHealth();
     void setHealth(float newHealth);
-    void hit(Player* player);
+    bool hit(Player* player);
 };
 
 #endif

@@ -40,7 +40,7 @@ class Player {
     float getDamage();
     void setHealth(float newHealth);
     bool shoot();
-    void reload();
+    bool reload();
 };
 
 #endif

@@ -95,6 +95,6 @@ bool Player::shoot() {
   return false;
 }
 
-void Player::reload() {
-  gun.reload();
+bool Player::reload() {
+  return gun.reload();
 }

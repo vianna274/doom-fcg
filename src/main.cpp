@@ -132,6 +132,11 @@ int g_current_gun_id;
 std::vector<Wall> collisionWalls;
 bool g_menu;
 std::vector<std::string> g_types_enemies = std::vector<std::string>{"cow", "bunny"};
+sf::SoundBuffer bufferReload;
+sf::Sound soundReload;
+
+sf::SoundBuffer bufferCowAttack;
+sf::Sound soundCowAttack;
 /* END MINE */
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
@@ -314,6 +319,13 @@ int main(int argc, char* argv[])
     buffer.loadFromFile("../../data/pistol_sound.wav");
     sf::Sound sound;
     sound.setBuffer(buffer);
+
+    bufferReload.loadFromFile("../../data/pistol_reload.wav");
+    soundReload.setBuffer(bufferReload);
+
+    bufferCowAttack.loadFromFile("../../data/cow_attack.wav");
+    soundCowAttack.setBuffer(bufferCowAttack);
+
     bool possiblyShoot = true;
     double shootTime = 0.0f;
     g_menu = true;
@@ -374,7 +386,7 @@ int main(int argc, char* argv[])
             glfwPollEvents();
         }
         // Ingame loop
-        while (!g_menu)
+        while (!g_menu && !glfwWindowShouldClose(window))
         {
             glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -440,10 +452,7 @@ int main(int argc, char* argv[])
               DrawVirtualObject(g_current_gun_name);
             }
 
-            if ((glfwGetTime() - shootTime) >= 0.5) possiblyShoot = true;
-
             if (g_LeftMouseButtonPressed && g_main_player.shoot()) {
-                possiblyShoot = false;
                 /* HIT, para fazer algo melhor tem que fazer abstracao de classes, preguica */
                 // Might be a good Idea to put it in a specific function for hitting and collision
                 // ray/box
@@ -1199,7 +1208,8 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
 
     if (key == GLFW_KEY_R && action == GLFW_RELEASE)
     {
-        g_main_player.reload();
+        if (g_main_player.reload())
+          soundReload.play();
     }
 
 
@@ -1650,8 +1660,10 @@ void DrawEnemies() {
     glUniform1i(object_id_uniform, g_main_enemy.getId());
     DrawVirtualObject(g_main_enemy.getName());
 
-    if (ObjectStatic::inRange(g_main_enemy.getPosition(), g_main_player.getPosition(), 2.0f))
-      g_main_enemy.hit(&g_main_player);
+    if (ObjectStatic::inRange(g_main_enemy.getPosition(), g_main_player.getPosition(), 2.0f)) {
+      if (g_main_enemy.hit(&g_main_player) && g_main_enemy.getName() == "cow")
+        soundCowAttack.play();
+    }
 }
 
 // set makeprg=cd\ ..\ &&\ make\ run\ >/dev/null
